@@ -6,27 +6,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Better Auth</title>
     <link rel="stylesheet" href="/admin-styles.css">
+    <script src="/theme.js"></script>
 </head>
 
 <body>
     <div class="admin-container">
         <div class="admin-sidebar">
-            <h2>🔐 Admin Panel</h2>
+            <h2><i class="fas fa-shield-alt"></i>Admin Panel</h2>
             <nav>
                 <a href="#" class="nav-item active" onclick="showSection('usersSection')">
-                    <span>👥</span> Users
+                    <i class="fas fa-users"></i> Users
                 </a>
                 <a href="#" class="nav-item" onclick="showSection('sessionsSection')">
-                    <span>🔄</span> Sessions
+                    <i class="fas fa-clock"></i> Sessions
                 </a>
                 <a href="#" class="nav-item" onclick="showSection('settingsSection')">
-                    <span>⚙️</span> Settings
+                    <i class="fas fa-cog"></i> Settings
                 </a>
                 <a href="/dashboard.html" class="nav-item">
-                    <span>◀</span> Back to Dashboard
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
                 </a>
                 <a href="#" class="nav-item" onclick="signOut()">
-                    <span>🚪</span> Sign Out
+                    <i class="fas fa-sign-out-alt"></i> Sign Out
                 </a>
             </nav>
             <div class="admin-info">
@@ -40,15 +41,15 @@
             <div id="usersSection" class="section active">
                 <div class="section-header">
                     <h1>User Management</h1>
-                    <button onclick="showModal('createUserModal')" class="btn btn-primary">+ Create User</button>
+                    <button onclick="showModal('createUserModal')" class="btn btn-primary"><i class="fas fa-user-plus"></i>Create User</button>
                 </div>
 
                 <div class="search-bar">
                     <input type="text" id="searchInput" placeholder="Search users by email..."
                         onkeyup="if(event.key === 'Enter') searchUsers()">
-                    <button onclick="searchUsers()" class="btn btn-secondary">Search</button>
+                    <button onclick="searchUsers()" class="btn btn-secondary"><i class="fas fa-search"></i>Search</button>
                     <button onclick="document.getElementById('searchInput').value=''; searchQuery=''; loadUsers();"
-                        class="btn btn-outline">Clear</button>
+                        class="btn btn-outline"><i class="fas fa-times"></i>Clear</button>
                 </div>
 
                 <div class="stats-cards">
@@ -102,7 +103,7 @@
             <div id="sessionsSection" class="section">
                 <div class="section-header">
                     <h1>Active Sessions</h1>
-                    <button onclick="loadSessions()" class="btn btn-secondary">🔄 Refresh</button>
+                    <button onclick="loadSessions()" class="btn btn-secondary"><i class="fas fa-sync-alt"></i>Refresh</button>
                 </div>
                 <div id="sessionsContainer">
                     <p class="loading">Loading sessions...</p>
