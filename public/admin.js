@@ -32,8 +32,8 @@ async function checkAdminAccess() {
 
         // Check if user has admin role
         if (data.user.role !== 'admin') {
-            alert('Access denied. Admin privileges required.');
-            window.location.href = '/dashboard.html';
+            showError('Access denied. Admin privileges required.', 'Access Denied');
+            setTimeout(() => window.location.href = '/dashboard.html', 2000);
             return false;
         }
 
@@ -178,7 +178,7 @@ async function createUser() {
     const role = document.getElementById('newUserRole').value;
 
     if (!name || !email || !password) {
-        alert('Please fill in all fields');
+        showError('Please fill in all fields', 'Validation Error');
         return;
     }
 
@@ -202,14 +202,14 @@ async function createUser() {
             throw new Error(error.message || 'Failed to create user');
         }
 
-        alert('User created successfully');
+        showSuccess('User created successfully', 'Success');
         closeModal('createUserModal');
         document.getElementById('createUserForm').reset();
         loadUsers();
 
     } catch (error) {
         console.error('Error creating user:', error);
-        alert('Error creating user: ' + error.message);
+        showError('Error creating user: ' + error.message, 'Error');
     }
 }
 
@@ -227,7 +227,7 @@ async function editUser(userId) {
         const user = data.users.find(u => u.id === userId);
 
         if (!user) {
-            alert('User not found');
+            showError('User not found', 'Error');
             return;
         }
 
@@ -242,7 +242,7 @@ async function editUser(userId) {
 
     } catch (error) {
         console.error('Error fetching user details:', error);
-        alert('Error loading user details');
+        showError('Error loading user details', 'Error');
     }
 }
 
@@ -294,19 +294,24 @@ async function updateUser() {
             throw new Error('Failed to update role');
         }
 
-        alert('User updated successfully');
+        showSuccess('User updated successfully', 'Success');
         closeModal('editUserModal');
         loadUsers();
 
     } catch (error) {
         console.error('Error updating user:', error);
-        alert('Error updating user: ' + error.message);
+        showError('Error updating user: ' + error.message, 'Error');
     }
 }
 
 // Delete user
 async function deleteUser(userId) {
-    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+    const confirmed = await showConfirm(
+        'Are you sure you want to delete this user? This action cannot be undone.',
+        null,
+        'Delete User'
+    );
+    if (!confirmed) {
         return;
     }
 
@@ -326,12 +331,12 @@ async function deleteUser(userId) {
             throw new Error('Failed to delete user');
         }
 
-        alert('User deleted successfully');
+        showSuccess('User deleted successfully', 'Success');
         loadUsers();
 
     } catch (error) {
         console.error('Error deleting user:', error);
-        alert('Error deleting user: ' + error.message);
+        showError('Error deleting user: ' + error.message, 'Error');
     }
 }
 
@@ -354,12 +359,12 @@ async function toggleBanUser(userId, isBanned) {
             throw new Error(`Failed to ${isBanned ? 'unban' : 'ban'} user`);
         }
 
-        alert(`User ${isBanned ? 'unbanned' : 'banned'} successfully`);
+        showSuccess(`User ${isBanned ? 'unbanned' : 'banned'} successfully`, 'Success');
         loadUsers();
 
     } catch (error) {
         console.error('Error toggling ban status:', error);
-        alert('Error updating ban status: ' + error.message);
+        showError('Error updating ban status: ' + error.message, 'Error');
     }
 }
 
@@ -430,7 +435,12 @@ function displaySessions(sessions) {
 
 // Revoke session
 async function revokeSession(sessionToken) {
-    if (!confirm('Are you sure you want to revoke this session?')) {
+    const confirmed = await showConfirm(
+        'Are you sure you want to revoke this session?',
+        null,
+        'Revoke Session'
+    );
+    if (!confirmed) {
         return;
     }
 
@@ -450,12 +460,12 @@ async function revokeSession(sessionToken) {
             throw new Error('Failed to revoke session');
         }
 
-        alert('Session revoked successfully');
+        showSuccess('Session revoked successfully', 'Success');
         loadSessions();
 
     } catch (error) {
         console.error('Error revoking session:', error);
-        alert('Error revoking session: ' + error.message);
+        showError('Error revoking session: ' + error.message, 'Error');
     }
 }
 
@@ -515,8 +525,13 @@ function filterUsers(filter) {
 }
 
 // Sign out
-function signOut() {
-    if (confirm('Are you sure you want to sign out?')) {
+async function signOut() {
+    const confirmed = await showConfirm(
+        'Are you sure you want to sign out?',
+        null,
+        'Sign Out'
+    );
+    if (confirmed) {
         localStorage.removeItem('authToken');
         window.location.href = '/signin.html';
     }

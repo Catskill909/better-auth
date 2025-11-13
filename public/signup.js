@@ -36,7 +36,7 @@ if (signupForm) {
 
             if (response.ok) {
                 messageDiv.className = 'message success';
-                messageDiv.textContent = '✅ Account created successfully! Redirecting to dashboard...';
+                messageDiv.textContent = 'Account created successfully! Redirecting to dashboard...';
 
                 // Store the session token
                 localStorage.setItem('authToken', data.token);
@@ -47,11 +47,11 @@ if (signupForm) {
                 }, 1500);
             } else {
                 messageDiv.className = 'message error';
-                messageDiv.textContent = '❌ ' + (data.message || 'Sign up failed. Please try again.');
+                messageDiv.textContent = (data.message || 'Sign up failed. Please try again.');
             }
         } catch (error) {
             messageDiv.className = 'message error';
-            messageDiv.textContent = '❌ Network error. Please check your connection.';
+            messageDiv.textContent = 'Network error. Please check your connection.';
             console.error('Error:', error);
         }
 

@@ -173,13 +173,26 @@ small {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+    background: var(--accent-primary);
     color: white;
 }
 
 .btn-primary:hover {
+    background: var(--accent-secondary);
+    color: white;
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
+}
+
+/* Ensure buttons used as links maintain proper text color */
+a.btn-primary {
+    color: white !important;
+    text-decoration: none !important;
+}
+
+a.btn-primary:hover {
+    color: white !important;
+    text-decoration: none !important;
 }
 
 .btn-secondary {
@@ -190,7 +203,20 @@ small {
 
 .btn-secondary:hover {
     background: var(--border-color);
+    color: var(--text-primary);
+    border-color: var(--accent-primary);
     transform: translateY(-2px);
+}
+
+/* Ensure buttons used as links maintain proper text color */
+a.btn-secondary {
+    color: var(--text-primary) !important;
+    text-decoration: none !important;
+}
+
+a.btn-secondary:hover {
+    color: var(--text-primary) !important;
+    text-decoration: none !important;
 }
 
 .btn-danger {
@@ -200,7 +226,39 @@ small {
 
 .btn-danger:hover {
     background: #dc2626;
+    color: white;
     transform: translateY(-2px);
+}
+
+a.btn-danger {
+    color: white !important;
+    text-decoration: none !important;
+}
+
+a.btn-danger:hover {
+    color: white !important;
+    text-decoration: none !important;
+}
+
+.btn-success {
+    background: var(--success);
+    color: white;
+}
+
+.btn-success:hover {
+    background: #059669;
+    color: white;
+    transform: translateY(-2px);
+}
+
+a.btn-success {
+    color: white !important;
+    text-decoration: none !important;
+}
+
+a.btn-success:hover {
+    color: white !important;
+    text-decoration: none !important;
 }
 
 .btn:disabled {
@@ -211,6 +269,40 @@ small {
 
 .button-group {
     margin-top: 20px;
+}
+
+/* Badge Styles */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.badge-success {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--success);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-error {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--error);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.badge i {
+    font-size: 12px;
+}
+
+.error-text {
+    color: var(--error);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .message {
@@ -250,6 +342,14 @@ a {
 a:hover {
     color: var(--accent-secondary);
     text-decoration: underline;
+}
+
+a:visited {
+    color: var(--accent-primary);
+}
+
+a:visited:hover {
+    color: var(--accent-secondary);
 }
 
 .info {

@@ -26,7 +26,7 @@ async function loadUserInfo() {
     } catch (error) {
         console.error('Error fetching session:', error);
         document.getElementById('userInfo').innerHTML = `
-            <p style="color: #e74c3c;">❌ Error loading user information</p>
+            <p class="error-text"><i class="fas fa-exclamation-circle"></i> Error loading user information</p>
         `;
     }
 }
@@ -35,15 +35,15 @@ function displayUserInfo(data) {
     const userInfoDiv = document.getElementById('userInfo');
 
     const verificationBadge = data.user.emailVerified
-        ? '<span style="color: #28a745;">✅ Verified</span>'
-        : '<span style="color: #dc3545;">❌ Not Verified</span>';
+        ? '<span class="badge badge-success"><i class="fas fa-check-circle"></i> Verified</span>'
+        : '<span class="badge badge-error"><i class="fas fa-times-circle"></i> Not Verified</span>';
 
     const resendButton = !data.user.emailVerified
-        ? '<button id="resendVerificationBtn" class="btn btn-secondary" style="margin-top: 10px;">Resend Verification Email</button>'
+        ? '<button id="resendVerificationBtn" class="btn btn-secondary" style="margin-top: 10px;"><i class="fas fa-paper-plane"></i> Resend Verification Email</button>'
         : '';
 
     const adminLink = data.user.role === 'admin'
-        ? '<p><a href="/admin.html" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; display: inline-block; margin-top: 10px;">🔐 Admin Dashboard</a></p>'
+        ? '<p><a href="/admin.html" class="btn btn-primary" style="text-decoration: none; display: inline-block; margin-top: 10px;"><i class="fas fa-user-shield"></i> Admin Dashboard</a></p>'
         : '';
 
     userInfoDiv.innerHTML = `
@@ -77,19 +77,20 @@ function displayUserInfo(data) {
                     });
 
                     if (response.ok) {
-                        resendBtn.textContent = '✅ Email Sent!';
-                        resendBtn.style.background = '#28a745';
-                        alert('Verification email sent! Please check your inbox.');
+                        resendBtn.innerHTML = '<i class="fas fa-check"></i> Email Sent!';
+                        resendBtn.classList.remove('btn-secondary');
+                        resendBtn.classList.add('btn-success');
+                        showSuccess('Verification email sent! Please check your inbox.', 'Email Sent');
                     } else {
                         resendBtn.disabled = false;
                         resendBtn.textContent = 'Resend Verification Email';
-                        alert('Failed to send verification email. Please try again.');
+                        showError('Failed to send verification email. Please try again.', 'Error');
                     }
                 } catch (error) {
                     console.error('Error sending verification email:', error);
                     resendBtn.disabled = false;
                     resendBtn.textContent = 'Resend Verification Email';
-                    alert('Network error. Please try again.');
+                    showError('Network error. Please try again.', 'Error');
                 }
             });
         }

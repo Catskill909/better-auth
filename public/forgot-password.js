@@ -10,13 +10,8 @@ if (forgotPasswordForm) {
         console.log('Form submitted');
 
         const email = document.getElementById('email').value;
-        const messageDiv = document.getElementById('message');
 
         console.log('Email:', email);
-
-        // Clear previous messages
-        messageDiv.className = 'message';
-        messageDiv.textContent = '';
 
         try {
             console.log('Sending request to /api/auth/forget-password');
@@ -33,20 +28,41 @@ if (forgotPasswordForm) {
             console.log('Response data:', data);
 
             if (response.ok) {
-                messageDiv.className = 'message success';
-                messageDiv.innerHTML = `
-                    <p>✅ Password reset email sent!</p>
-                    <p>Check your inbox at <strong>${email}</strong> for the reset link.</p>
-                    <p>The link will expire in 1 hour.</p>
+                // Hide the form
+                forgotPasswordForm.style.display = 'none';
+
+                // Show success state in the page
+                const cardContent = document.querySelector('.auth-card');
+                cardContent.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <div style="margin-bottom: 30px;">
+                            <i class="fas fa-envelope-open-text" style="font-size: 64px; color: var(--success);"></i>
+                        </div>
+                        <h2 style="margin-bottom: 20px;">Check Your Email</h2>
+                        <p style="color: var(--text-secondary); margin-bottom: 15px; line-height: 1.6;">
+                            We've sent a password reset link to:
+                        </p>
+                        <p style="color: var(--accent-primary); font-weight: 600; font-size: 18px; margin-bottom: 25px;">
+                            ${email}
+                        </p>
+                        <div style="background: var(--bg-tertiary); padding: 20px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid var(--success);">
+                            <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">
+                                <i class="fas fa-info-circle"></i> The reset link will expire in <strong>1 hour</strong>
+                            </p>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 30px;">
+                            Didn't receive the email? Check your spam folder or contact support.
+                        </p>
+                        <a href="/signin.html" class="btn btn-primary">
+                            <i class="fas fa-arrow-left"></i> Back to Sign In
+                        </a>
+                    </div>
                 `;
-                forgotPasswordForm.reset();
             } else {
-                messageDiv.className = 'message error';
-                messageDiv.textContent = '❌ ' + (data.message || 'Failed to send reset email. Please try again.');
+                showError(data.message || 'Failed to send reset email. Please try again.', 'Error');
             }
         } catch (error) {
-            messageDiv.className = 'message error';
-            messageDiv.textContent = '❌ Network error. Please check your connection.';
+            showError('Network error. Please check your connection.', 'Error');
             console.error('Error:', error);
         }
 

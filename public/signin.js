@@ -35,7 +35,7 @@ if (signinForm) {
 
             if (response.ok) {
                 messageDiv.className = 'message success';
-                messageDiv.textContent = '✅ Sign in successful! Redirecting...';
+                messageDiv.textContent = 'Sign in successful! Redirecting...';
 
                 // Store the session token
                 localStorage.setItem('authToken', data.token);
@@ -46,11 +46,11 @@ if (signinForm) {
                 }, 1000);
             } else {
                 messageDiv.className = 'message error';
-                messageDiv.textContent = '❌ ' + (data.message || 'Invalid email or password.');
+                messageDiv.textContent = (data.message || 'Invalid email or password.');
             }
         } catch (error) {
             messageDiv.className = 'message error';
-            messageDiv.textContent = '❌ Network error. Please check your connection.';
+            messageDiv.textContent = 'Network error. Please check your connection.';
             console.error('Error:', error);
         }
 

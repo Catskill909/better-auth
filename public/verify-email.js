@@ -8,7 +8,7 @@ const actionsDiv = document.getElementById('actions');
 
 if (!token) {
     messageDiv.className = 'message error';
-    messageDiv.innerHTML = '<p>❌ No verification token found.</p><p>Please check your email for the verification link.</p>';
+    messageDiv.innerHTML = '<p class="error-text"><i class="fas fa-exclamation-circle"></i> No verification token found.</p><p>Please check your email for the verification link.</p>';
 } else {
     // Verify the email
     verifyEmail(token);
@@ -27,7 +27,7 @@ async function verifyEmail(token) {
         if (response.ok) {
             messageDiv.className = 'message success';
             messageDiv.innerHTML = `
-                <h2>✅ Email Verified!</h2>
+                <h2><i class="fas fa-check-circle" style="color: var(--success);"></i> Email Verified!</h2>
                 <p>Your email has been successfully verified.</p>
                 <p>You can now sign in to your account.</p>
             `;
@@ -36,7 +36,7 @@ async function verifyEmail(token) {
             const data = await response.json();
             messageDiv.className = 'message error';
             messageDiv.innerHTML = `
-                <p>❌ Verification failed</p>
+                <p class="error-text"><i class="fas fa-times-circle"></i> Verification failed</p>
                 <p>${data.message || 'The verification link may be invalid or expired.'}</p>
                 <p>Please try signing up again or contact support.</p>
             `;
@@ -45,7 +45,7 @@ async function verifyEmail(token) {
         console.error('Verification error:', error);
         messageDiv.className = 'message error';
         messageDiv.innerHTML = `
-            <p>❌ Network error</p>
+            <p class="error-text"><i class="fas fa-exclamation-circle"></i> Network error</p>
             <p>Unable to verify your email. Please check your connection and try again.</p>
         `;
     }

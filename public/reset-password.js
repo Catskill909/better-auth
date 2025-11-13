@@ -11,12 +11,10 @@ if (token && token.includes('?')) {
 
 console.log('Extracted token:', token);
 
-const messageDiv = document.getElementById('message');
 const resetPasswordForm = document.getElementById('resetPasswordForm');
 
 if (!token) {
-    messageDiv.className = 'message error';
-    messageDiv.innerHTML = '<p>❌ No reset token found.</p><p>Please check your email for the reset link.</p>';
+    showError('No reset token found. Please check your email for the reset link.', 'Invalid Link');
     resetPasswordForm.style.display = 'none';
 }
 
@@ -30,58 +28,54 @@ if (resetPasswordForm) {
         const password = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
 
-        // Clear previous messages
-        messageDiv.className = 'message';
-        messageDiv.textContent = '';
-
         // Validate passwords match
         if (password !== confirmPassword) {
-            messageDiv.className = 'message error';
-            messageDiv.textContent = '❌ Passwords do not match';
+            showError('Passwords do not match', 'Validation Error');
             return false;
         }
 
         // Validate password length
         if (password.length < 8) {
-            messageDiv.className = 'message error';
-            messageDiv.textContent = '❌ Password must be at least 8 characters';
+            showError('Password must be at least 8 characters', 'Validation Error');
             return false;
         }
 
         try {
             console.log('Sending reset password request');
-            const response = await fetch(`/api/auth/reset-password?token=${token}`, {
+            console.log('Token:', token);
+            console.log('Password length:', password.length);
+
+            const response = await fetch('/api/auth/reset-password', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ password }),
+                body: JSON.stringify({
+                    newPassword: password,
+                    token: token
+                }),
             });
 
             console.log('Response status:', response.status);
-            const data = await response.json();
-            console.log('Response data:', data);
 
             if (response.ok) {
-                messageDiv.className = 'message success';
-                messageDiv.innerHTML = `
-                    <p>✅ Password reset successful!</p>
-                    <p>Your password has been changed. Redirecting to sign in...</p>
-                `;
+                const data = await response.json();
+                console.log('Response data:', data);
                 resetPasswordForm.reset();
+                showSuccess('Password reset successful! Your password has been changed. Redirecting to sign in...', 'Success');
 
                 // Redirect to sign in after 2 seconds
                 setTimeout(() => {
                     window.location.href = '/signin.html';
                 }, 2000);
             } else {
-                messageDiv.className = 'message error';
-                messageDiv.textContent = '❌ ' + (data.message || 'Failed to reset password. The link may be expired.');
+                const data = await response.json().catch(() => ({ message: 'Failed to reset password' }));
+                console.log('Error response data:', data);
+                showError(data.message || 'Failed to reset password. The link may be expired.', 'Error');
             }
         } catch (error) {
-            messageDiv.className = 'message error';
-            messageDiv.textContent = '❌ Network error. Please check your connection.';
             console.error('Error:', error);
+            showError('Network error. Please check your connection.', 'Error');
         }
 
         return false;

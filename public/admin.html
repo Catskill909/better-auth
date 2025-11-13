@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Better Auth</title>
     <link rel="stylesheet" href="/admin-styles.css">
+    <script src="/modal-system.js"></script>
     <script src="/theme.js"></script>
 </head>
 
@@ -41,13 +42,15 @@
             <div id="usersSection" class="section active">
                 <div class="section-header">
                     <h1>User Management</h1>
-                    <button onclick="showModal('createUserModal')" class="btn btn-primary"><i class="fas fa-user-plus"></i>Create User</button>
+                    <button onclick="showModal('createUserModal')" class="btn btn-primary"><i
+                            class="fas fa-user-plus"></i>Create User</button>
                 </div>
 
                 <div class="search-bar">
                     <input type="text" id="searchInput" placeholder="Search users by email..."
                         onkeyup="if(event.key === 'Enter') searchUsers()">
-                    <button onclick="searchUsers()" class="btn btn-secondary"><i class="fas fa-search"></i>Search</button>
+                    <button onclick="searchUsers()" class="btn btn-secondary"><i
+                            class="fas fa-search"></i>Search</button>
                     <button onclick="document.getElementById('searchInput').value=''; searchQuery=''; loadUsers();"
                         class="btn btn-outline"><i class="fas fa-times"></i>Clear</button>
                 </div>
@@ -103,7 +106,8 @@
             <div id="sessionsSection" class="section">
                 <div class="section-header">
                     <h1>Active Sessions</h1>
-                    <button onclick="loadSessions()" class="btn btn-secondary"><i class="fas fa-sync-alt"></i>Refresh</button>
+                    <button onclick="loadSessions()" class="btn btn-secondary"><i
+                            class="fas fa-sync-alt"></i>Refresh</button>
                 </div>
                 <div id="sessionsContainer">
                     <p class="loading">Loading sessions...</p>
@@ -192,10 +196,11 @@
                         <option value="admin">Admin</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-container">
                         <input type="checkbox" id="editUserVerified">
-                        Email Verified
+                        <span class="checkmark"></span>
+                        <span class="checkbox-label">Email Verified</span>
                     </label>
                 </div>
                 <button type="submit" class="btn btn-primary">Update User</button>
