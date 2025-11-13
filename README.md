@@ -5,12 +5,14 @@ A complete, portable authentication system built with Better Auth, featuring ema
 ## 🚀 Features
 
 - ✅ **Email/Password Authentication** - Secure user signup and signin
-- ✅ **Email Verification** - DirectAdmin SMTP integration for email verification
-- ✅ **Password Reset** - Forgot password and password reset functionality
+- ✅ **Google OAuth** - Sign in with Google account
+- ✅ **Email Verification** - DirectAdmin SMTP integration with Material Design emails
+- ✅ **Password Reset** - Secure token-based password reset flow
 - ✅ **Admin Dashboard** - Comprehensive user management interface
 - ✅ **Session Management** - View and manage active user sessions
 - ✅ **User Roles** - User and admin role system
-- ✅ **Beautiful UI** - Responsive design with purple gradient theme
+- ✅ **Modern UI** - Clean Material Design with dark/light mode
+- ✅ **Global Modal System** - Professional modals replacing browser alerts
 - ✅ **SQLite Database** - Local file-based database (no external DB required)
 
 ## 📋 Prerequisites
@@ -29,10 +31,14 @@ A complete, portable authentication system built with Better Auth, featuring ema
 
 3. **Set up environment variables**
    
-   Create a `.env` file in the root directory (already exists):
+   Create a `.env` file in the root directory:
    ```env
    BETTER_AUTH_SECRET=your-secret-key-here
    BETTER_AUTH_URL=http://localhost:3000
+   
+   # Optional: Google OAuth (see Google OAuth Setup below)
+   GOOGLE_CLIENT_ID=your-google-client-id
+   GOOGLE_CLIENT_SECRET=your-google-client-secret
    ```
 
 4. **Run database migrations** (if needed)
@@ -86,6 +92,23 @@ The admin dashboard provides comprehensive user management capabilities:
 - Verified users count
 - Banned users count
 - Admin users count
+
+## 🔐 Google OAuth Setup
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/dashboard)
+2. Create a new project or select existing one
+3. Go to **Credentials** → **Create Credentials** → **OAuth 2.0 Client ID**
+4. Set **Application type** to **Web application**
+5. Add **Authorized redirect URIs**:
+   - Development: `http://localhost:3000/api/auth/callback/google`
+   - Production: `https://yourdomain.com/api/auth/callback/google`
+6. Add **Authorized JavaScript origins**:
+   - Development: `http://localhost:3000`
+   - Production: `https://yourdomain.com`
+7. Copy **Client ID** and **Client Secret** to your `.env` file
+8. Restart the server
+
+Users can now click "Sign in with Google" button on the signin page!
 
 ## 📁 Project Structure
 
@@ -220,12 +243,28 @@ See [Better Auth Admin Plugin Docs](https://www.better-auth.com/docs/plugins/adm
 
 ## 🔒 Security Notes
 
-- Always use HTTPS in production
-- Keep `BETTER_AUTH_SECRET` secure and random
-- Don't commit `.env` file to version control
-- Use strong passwords for admin accounts
-- Regularly update dependencies
-- Monitor admin actions and sessions
+⚠️ **This is a development setup. See [SECURITY-AUDIT.md](SECURITY-AUDIT.md) for production deployment checklist.**
+
+### Development Security
+- `.env` file is gitignored
+- Passwords are hashed with bcrypt
+- Sessions use secure tokens
+- Email verification required
+- Role-based access control
+
+### Before Production Deployment
+- [ ] Enable HTTPS (required)
+- [ ] Rotate all secrets (new BETTER_AUTH_SECRET)
+- [ ] Move to production database (PostgreSQL/MySQL)
+- [ ] Move SMTP credentials to environment variables
+- [ ] Enable rate limiting
+- [ ] Configure CSP headers
+- [ ] Set secure cookie flags
+- [ ] Add monitoring and logging
+- [ ] Configure database backups
+- [ ] Update Google OAuth redirect URIs
+
+**See [SECURITY-AUDIT.md](SECURITY-AUDIT.md) for complete security checklist and recommendations.**
 
 ## 📝 License
 

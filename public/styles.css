@@ -261,6 +261,50 @@ a.btn-success:hover {
     text-decoration: none !important;
 }
 
+.btn-google {
+    background: #ffffff;
+    color: #1f1f1f;
+    border: 1px solid #dadce0;
+}
+
+[data-theme="light"] .btn-google {
+    background: #ffffff;
+    color: #1f1f1f;
+    border: 1px solid #dadce0;
+}
+
+.btn-google:hover {
+    background: #f8f9fa;
+    color: #1f1f1f;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-google i {
+    color: #4285f4;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 24px 0;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.divider span {
+    padding: 0 16px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+}
+
 .btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;

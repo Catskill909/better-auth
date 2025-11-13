@@ -9,6 +9,12 @@ const { sendVerificationEmail, sendPasswordResetEmail, sendPasswordChangedEmail 
 // Initialize Better Auth
 const auth = betterAuth({
     database: new Database(path.join(__dirname, '..', 'sqlite.db')),
+    socialProviders: {
+        google: {
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        },
+    },
     emailAndPassword: {
         enabled: true,
         sendResetPassword: async ({ user, url }) => {
@@ -51,13 +57,6 @@ const auth = betterAuth({
             adminRoles: ['admin'],
         })
     ],
-    // Optional: Add social providers
-    // socialProviders: {
-    //     github: {
-    //         clientId: process.env.GITHUB_CLIENT_ID,
-    //         clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    //     },
-    // },
 });
 
 module.exports = { auth, sendPasswordChangedEmail };

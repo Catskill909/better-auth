@@ -1,6 +1,32 @@
 console.log('Signin script loaded');
 
+// Create Better Auth client
+const authClient = BetterAuthClient.createAuthClient({
+    baseURL: window.location.origin
+});
+
 const signinForm = document.getElementById('signinForm');
+const googleSignInBtn = document.getElementById('googleSignIn');
+
+// Google Sign In
+if (googleSignInBtn) {
+    googleSignInBtn.addEventListener('click', async () => {
+        try {
+            // Use Better Auth client for social login
+            await authClient.signIn.social({
+                provider: 'google',
+                callbackURL: '/dashboard.html'
+            });
+        } catch (error) {
+            console.error('Google sign-in error:', error);
+            const messageDiv = document.getElementById('message');
+            if (messageDiv) {
+                messageDiv.className = 'message error';
+                messageDiv.textContent = 'Failed to initiate Google sign-in';
+            }
+        }
+    });
+}
 
 if (signinForm) {
     signinForm.addEventListener('submit', async (e) => {
