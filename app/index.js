@@ -7,9 +7,10 @@ const path = require('path');
 console.log('🔧 Ensuring database schema exists...');
 require('../scripts/init-db');
 
-// Run migration to add banned field to existing databases
+// Run migrations
 console.log('🔄 Running schema migrations...');
 require('../scripts/add-banned-field');
+require('../scripts/add-avatar-fields');
 
 // Load Better Auth (database is now ready)
 const { auth } = require('./better-auth');

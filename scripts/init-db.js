@@ -39,7 +39,25 @@ CREATE TABLE IF NOT EXISTS user (
     role TEXT DEFAULT 'user',
     banned INTEGER DEFAULT 0,
     banReason TEXT,
-    banExpiresAt INTEGER
+    banExpiresAt INTEGER,
+    avatar TEXT,
+    avatarThumbnail TEXT
+);
+
+-- Media table (for file uploads)
+CREATE TABLE IF NOT EXISTS media (
+    id TEXT PRIMARY KEY NOT NULL,
+    filename TEXT NOT NULL,
+    originalName TEXT NOT NULL,
+    mimeType TEXT NOT NULL,
+    size INTEGER NOT NULL,
+    path TEXT NOT NULL,
+    thumbnailPath TEXT,
+    uploadedBy TEXT NOT NULL,
+    uploadedAt INTEGER NOT NULL,
+    category TEXT DEFAULT 'general',
+    tags TEXT,
+    FOREIGN KEY (uploadedBy) REFERENCES user(id) ON DELETE CASCADE
 );
 
 -- Session table
@@ -88,6 +106,8 @@ CREATE INDEX IF NOT EXISTS idx_session_userId ON session(userId);
 CREATE INDEX IF NOT EXISTS idx_session_token ON session(token);
 CREATE INDEX IF NOT EXISTS idx_account_userId ON account(userId);
 CREATE INDEX IF NOT EXISTS idx_verification_identifier ON verification(identifier);
+CREATE INDEX IF NOT EXISTS idx_media_uploadedBy ON media(uploadedBy);
+CREATE INDEX IF NOT EXISTS idx_media_category ON media(category);
 `;
 
 // Execute schema
