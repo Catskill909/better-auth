@@ -69,7 +69,7 @@ const uploadAvatar = multer({
         fileSize: 5 * 1024 * 1024, // 5MB
         files: 1
     }
-});
+}).single('avatar');
 
 // Media upload (multiple files, various types, 10MB max per file)
 const uploadMedia = multer({
@@ -79,7 +79,7 @@ const uploadMedia = multer({
         fileSize: 10 * 1024 * 1024, // 10MB
         files: 10 // Max 10 files at once
     }
-});
+}).array('media', 10);
 
 // Single image upload (generic)
 const uploadSingleImage = multer({
@@ -89,7 +89,7 @@ const uploadSingleImage = multer({
         fileSize: 5 * 1024 * 1024,
         files: 1
     }
-});
+}).single('image');
 
 // Multiple images upload
 const uploadMultipleImages = multer({
@@ -99,7 +99,7 @@ const uploadMultipleImages = multer({
         fileSize: 5 * 1024 * 1024,
         files: 10
     }
-});
+}).array('images', 10);
 
 // Helper to clean up temp files
 function cleanupTempFile(filePath) {
