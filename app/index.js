@@ -448,6 +448,91 @@ app.delete('/api/admin/media/:fileId', requireAuth, requireAdmin, async (req, re
     }
 });
 
+// ============================================
+// Admin Session Management Endpoints
+// ============================================
+
+// GET /api/auth/admin/list-sessions - List all active sessions (admin only)
+app.get('/api/auth/admin/list-sessions', requireAuth, requireAdmin, (req, res) => {
+    try {
+        const sessions = db.prepare(`
+            SELECT 
+                session.id,
+                session.userId,
+                session.token,
+                session.expiresAt,
+                session.createdAt,
+                session.ipAddress,
+                session.userAgent,
+                user.email,
+                user.name,
+                user.role
+            FROM session
+            LEFT JOIN user ON session.userId = user.id
+            WHERE session.expiresAt > ?
+            ORDER BY session.createdAt DESC
+        `).all(Date.now());
+
+        // Format the sessions for display
+        const formattedSessions = sessions.map(session => ({
+            id: session.id,
+            userId: session.userId,
+            email: session.email,
+            name: session.name,
+            role: session.role,
+            createdAt: session.createdAt,
+            expiresAt: session.expiresAt,
+            ipAddress: session.ipAddress || 'Unknown',
+            userAgent: session.userAgent || 'Unknown',
+            isActive: session.expiresAt > Date.now()
+        }));
+
+        res.json({
+            sessions: formattedSessions,
+            total: formattedSessions.length
+        });
+
+    } catch (error) {
+        console.error('List sessions error:', error);
+        res.status(500).json({ error: 'Failed to list sessions' });
+    }
+});
+
+// POST /api/auth/admin/revoke-session - Revoke a session (admin only)
+app.post('/api/auth/admin/revoke-session', requireAuth, requireAdmin, (req, res) => {
+    try {
+        const { sessionId } = req.body;
+
+        if (!sessionId) {
+            return res.status(400).json({ error: 'Session ID is required' });
+        }
+
+        // Check if session exists
+        const session = db.prepare('SELECT * FROM session WHERE id = ?').get(sessionId);
+
+        if (!session) {
+            return res.status(404).json({ error: 'Session not found' });
+        }
+
+        // Prevent admin from revoking their own session
+        if (session.userId === req.user.id) {
+            return res.status(400).json({ error: 'Cannot revoke your own session' });
+        }
+
+        // Delete the session
+        db.prepare('DELETE FROM session WHERE id = ?').run(sessionId);
+
+        res.json({
+            success: true,
+            message: 'Session revoked successfully'
+        });
+
+    } catch (error) {
+        console.error('Revoke session error:', error);
+        res.status(500).json({ error: 'Failed to revoke session' });
+    }
+});
+
 // Home route - serve the main page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
