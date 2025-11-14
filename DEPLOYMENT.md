@@ -265,6 +265,151 @@ cd /app && node make-admin.js your-email@example.com
 
 ---
 
+## 🔴 CRITICAL DEPLOYMENT ISSUES & SOLUTIONS (Nov 14, 2025)
+
+### **Problem:** All auth endpoints returning 500 errors in production
+```
+Error: no such table: verification
+Error: no such table: user
+Error: no such table: session
+```
+
+### **Root Causes Discovered:**
+
+#### 1. **Migration Prompt Hanging in Production**
+- **Issue:** `npx @better-auth/cli migrate` was waiting for `(y/N)` prompt
+- **No interactive terminal in production** → migrations never ran → no tables created
+- **Fix:** Added `--yes` flag to auto-approve migrations
+  ```javascript
+  execSync('npx @better-auth/cli migrate --yes', { stdio: 'inherit' });
+  ```
+
+#### 2. **Better Auth CLI Couldn't Find Database Config**
+- **Issue:** Migration CLI didn't know WHERE to create tables
+- **Created tables in wrong location** (or not at all)
+- **App looked for tables in `/app/data/sqlite.db`** but they didn't exist
+- **Fix:** Created `/better-auth.js` at project root:
+  ```javascript
+  // better-auth.js (root level - for CLI to discover)
+  const { betterAuth } = require('better-auth');
+  const Database = require('better-sqlite3');
+  const path = require('path');
+
+  const dbPath = process.env.NODE_ENV === 'production'
+      ? '/app/data/sqlite.db'
+      : path.join(__dirname, 'sqlite.db');
+
+  module.exports.auth = betterAuth({
+      database: new Database(dbPath),
+  });
+  ```
+
+### **Failed Attempts (What Didn't Work):**
+
+1. ❌ **Separate migration script** (`scripts/migrate.js`)
+   - Problem: Healthcheck timeout (migrations took too long)
+   
+2. ❌ **Running migrations in package.json build script**
+   - Problem: Build runs before env vars available
+   
+3. ❌ **Creating Docker files**
+   - Problem: Coolify uses Nixpacks, not Docker
+   
+4. ❌ **Manual database file creation**
+   - Problem: File created but empty (no tables)
+   
+5. ❌ **Setting DATABASE_URL environment variable**
+   - Problem: Better Auth CLI doesn't read env vars for config
+
+### **Working Solution (Final):**
+
+1. ✅ **Root-level `better-auth.js` config file**
+   - CLI auto-discovers this file
+   - Points to correct database path
+   - Works in both dev and production
+
+2. ✅ **Inline migration at startup with `--yes` flag**
+   - In `app/index.js` BEFORE loading Better Auth:
+   ```javascript
+   execSync('npx @better-auth/cli migrate --yes', { 
+       stdio: 'inherit',
+       cwd: path.join(__dirname, '..')
+   });
+   ```
+
+3. ✅ **Persistent storage properly configured in Coolify**
+   - Source: `/app/data`
+   - Destination: `/app/data`
+   - Is Directory: ✅ Yes
+
+### **Deployment Sequence (Correct Order):**
+
+```bash
+# 1. Coolify starts container
+# 2. Sets NODE_ENV=production
+# 3. Runs: npm start (→ node app/index.js)
+# 4. app/index.js executes migration with --yes flag
+# 5. CLI finds /better-auth.js config
+# 6. Creates tables in /app/data/sqlite.db
+# 7. App loads Better Auth from app/better-auth.js
+# 8. Server starts listening on port 3000
+# 9. All endpoints work! ✅
+```
+
+### **Key Files for Deployment:**
+
+| File | Purpose | Critical For |
+|------|---------|-------------|
+| `/better-auth.js` | CLI config (auto-discovery) | Migrations finding DB |
+| `app/better-auth.js` | App runtime config | Better Auth instance |
+| `app/index.js` | Server + inline migration | Startup sequence |
+| `/app/data/` | Persistent storage mount | Database survival |
+
+### **Environment Variables Required in Coolify:**
+
+```bash
+NODE_ENV=production
+BETTER_AUTH_SECRET=y8ErFtvegNawDLtD2kvYMqko4xLbfKzzv8UA+WyXUBU=
+BETTER_AUTH_URL=https://auth.supersoul.top
+SMTP_HOST=mail.starkey.digital
+SMTP_PORT=587
+SMTP_USER=auth@starkey.digital
+SMTP_PASSWORD=wjff1960
+SMTP_FROM=auth@starkey.digital
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+```
+
+### **Verification After Deployment:**
+
+```bash
+# 1. Check migrations ran
+# Look for in logs: "✅ Migrations completed"
+
+# 2. Check tables exist
+# In Coolify Terminal:
+cd /app/data
+sqlite3 sqlite.db ".tables"
+# Should see: user, session, account, verification
+
+# 3. Test endpoints
+curl https://auth.supersoul.top/health
+curl -X POST https://auth.supersoul.top/api/auth/sign-up/email \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"Test123!","name":"Test"}'
+```
+
+### **If Still Getting 500 Errors:**
+
+1. Check Coolify logs for actual error message
+2. Verify persistent storage mounted: `ls /app/data/`
+3. Verify database exists: `ls /app/data/sqlite.db`
+4. Check tables: `sqlite3 /app/data/sqlite.db ".tables"`
+5. Verify env vars set: `echo $NODE_ENV` should be "production"
+6. Check migrations log: Should see "migration was completed successfully"
+
+---
+
 ## 📂 Important Files
 
 ```
