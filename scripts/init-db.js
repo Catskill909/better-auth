@@ -36,7 +36,10 @@ CREATE TABLE IF NOT EXISTS user (
     image TEXT,
     createdAt INTEGER NOT NULL,
     updatedAt INTEGER NOT NULL,
-    role TEXT DEFAULT 'user'
+    role TEXT DEFAULT 'user',
+    banned INTEGER DEFAULT 0,
+    banReason TEXT,
+    banExpiresAt INTEGER
 );
 
 -- Session table
