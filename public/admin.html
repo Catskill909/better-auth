@@ -21,6 +21,9 @@
                 <a href="#" class="nav-item" onclick="showSection('sessionsSection')">
                     <i class="fas fa-clock"></i> Sessions
                 </a>
+                <a href="#" class="nav-item" onclick="showSection('mediaSection')">
+                    <i class="fas fa-images"></i> Media Library
+                </a>
                 <a href="#" class="nav-item" onclick="showSection('settingsSection')">
                     <i class="fas fa-cog"></i> Settings
                 </a>
@@ -111,6 +114,52 @@
                 </div>
                 <div id="sessionsContainer">
                     <p class="loading">Loading sessions...</p>
+                </div>
+            </div>
+
+            <!-- Media Library Section -->
+            <div id="mediaSection" class="section">
+                <div class="section-header">
+                    <h1>Media Library</h1>
+                    <button onclick="document.getElementById('mediaUploadInput').click()" class="btn btn-primary">
+                        <i class="fas fa-upload"></i> Upload Files
+                    </button>
+                </div>
+
+                <input type="file" id="mediaUploadInput" multiple accept="image/*" style="display: none;"
+                    onchange="uploadMediaFiles(this.files)">
+
+                <div class="stats-cards">
+                    <div class="stat-card">
+                        <h3 id="totalMedia">0</h3>
+                        <p>Total Files</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="totalAvatars">0</h3>
+                        <p>Avatars</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="totalImages">0</h3>
+                        <p>Media Images</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="storageUsed">0 MB</h3>
+                        <p>Storage Used</p>
+                    </div>
+                </div>
+
+                <div class="media-filters">
+                    <select id="categoryFilter" onchange="filterMedia()">
+                        <option value="">All Categories</option>
+                        <option value="avatar">Avatars</option>
+                        <option value="media">Media</option>
+                    </select>
+                    <button onclick="loadMedia()" class="btn btn-secondary"><i class="fas fa-sync-alt"></i>
+                        Refresh</button>
+                </div>
+
+                <div id="mediaGrid" class="media-grid">
+                    <p class="loading">Loading media files...</p>
                 </div>
             </div>
 

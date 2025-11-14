@@ -544,3 +544,218 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadUsers();
     }
 });
+
+// ============================================
+// MEDIA LIBRARY FUNCTIONS
+// ============================================
+
+let currentMediaFilter = '';
+
+// Load media files
+async function loadMedia() {
+    try {
+        const category = currentMediaFilter || '';
+        const response = await fetch(`/api/admin/media/list?category=${category}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to load media');
+        }
+
+        const data = await response.json();
+        displayMedia(data.files);
+        updateMediaStats(data.stats);
+    } catch (error) {
+        console.error('Error loading media:', error);
+        document.getElementById('mediaGrid').innerHTML = `
+            <div class="media-empty">
+                <i class="fas fa-exclamation-circle"></i>
+                <p>Error loading media files</p>
+            </div>
+        `;
+    }
+}
+
+// Display media grid
+function displayMedia(files) {
+    const grid = document.getElementById('mediaGrid');
+
+    if (!files || files.length === 0) {
+        grid.innerHTML = `
+            <div class="media-empty">
+                <i class="fas fa-images"></i>
+                <p>No media files uploaded yet</p>
+                <p style="margin-top: 10px; font-size: 14px;">Click "Upload Files" to get started</p>
+            </div>
+        `;
+        return;
+    }
+
+    grid.innerHTML = files.map(file => `
+        <div class="media-item">
+            <img src="${file.url}" alt="${file.originalName}" class="media-item-image" onclick="viewMediaFullscreen('${file.url}')">
+            <div class="media-item-info">
+                <div class="media-item-name" title="${file.originalName}">${file.originalName}</div>
+                <div class="media-item-meta">
+                    <span class="media-item-category">${file.category}</span>
+                    <span>${formatFileSize(file.size)}</span>
+                </div>
+                <div class="media-item-actions">
+                    <button class="btn-copy" onclick="copyMediaUrl('${file.url}')" title="Copy URL">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    ${file.category !== 'avatar' ? `
+                        <button class="btn-delete-media" onclick="deleteMedia('${file.id}', '${file.originalName}')" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Update media stats
+function updateMediaStats(stats) {
+    document.getElementById('totalMedia').textContent = stats.totalFiles;
+    document.getElementById('totalAvatars').textContent = stats.avatars;
+    document.getElementById('totalImages').textContent = stats.media;
+    document.getElementById('storageUsed').textContent = formatFileSize(stats.totalSize);
+}
+
+// Format file size
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+}
+
+// Upload media files
+async function uploadMediaFiles(files) {
+    if (!files || files.length === 0) return;
+
+    const formData = new FormData();
+    for (let file of files) {
+        formData.append('media', file);
+    }
+
+    try {
+        const response = await fetch('/api/admin/media/upload', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showSuccess(
+                `Successfully uploaded ${data.count} file(s)`,
+                'Upload Complete'
+            );
+            loadMedia(); // Refresh the grid
+        } else {
+            showError(data.error || 'Failed to upload files', 'Upload Failed');
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        showError('Network error. Please try again.', 'Error');
+    }
+
+    // Reset file input
+    document.getElementById('mediaUploadInput').value = '';
+}
+
+// Copy media URL to clipboard
+async function copyMediaUrl(url) {
+    try {
+        await navigator.clipboard.writeText(url);
+        showSuccess('URL copied to clipboard!', 'Copied');
+    } catch (error) {
+        console.error('Copy error:', error);
+        showError('Failed to copy URL', 'Error');
+    }
+}
+
+// Delete media file
+async function deleteMedia(fileId, filename) {
+    const confirmed = await showConfirm(
+        `Are you sure you want to delete "${filename}"?`,
+        'This action cannot be undone.',
+        'Delete File'
+    );
+
+    if (!confirmed) return;
+
+    try {
+        const response = await fetch(`/api/admin/media/${fileId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showSuccess('File deleted successfully', 'Deleted');
+            loadMedia(); // Refresh the grid
+        } else {
+            showError(data.error || 'Failed to delete file', 'Error');
+        }
+    } catch (error) {
+        console.error('Delete error:', error);
+        showError('Network error. Please try again.', 'Error');
+    }
+}
+
+// Filter media by category
+function filterMedia() {
+    currentMediaFilter = document.getElementById('categoryFilter').value;
+    loadMedia();
+}
+
+// View media in fullscreen
+function viewMediaFullscreen(url) {
+    const modal = document.createElement('div');
+    modal.className = 'media-modal active';
+    modal.innerHTML = `
+        <span class="media-modal-close" onclick="this.parentElement.remove()">&times;</span>
+        <div class="media-modal-content">
+            <img src="${url}" class="media-modal-image" alt="Full size image">
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Close on click outside image
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+
+    // Close on escape key
+    const escHandler = (e) => {
+        if (e.key === 'Escape') {
+            modal.remove();
+            document.removeEventListener('keydown', escHandler);
+        }
+    };
+    document.addEventListener('keydown', escHandler);
+}
+
+// Show section and load media when media section is shown
+const originalShowSection = showSection;
+showSection = function (sectionId) {
+    originalShowSection(sectionId);
+    if (sectionId === 'mediaSection') {
+        loadMedia();
+    }
+};

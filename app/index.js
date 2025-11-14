@@ -20,9 +20,9 @@ const fs = require('fs').promises;
 const crypto = require('crypto');
 
 // Load media utilities
-const { uploadAvatar, cleanupTempFile } = require('./upload-middleware');
-const { processAvatar, deleteProcessedImages, isValidImage } = require('./image-processor');
-const { getUserAvatarUrls } = require('./media-utils');
+const { uploadAvatar, cleanupTempFile, uploadMedia } = require('./upload-middleware');
+const { processAvatar, deleteProcessedImages, isValidImage, processMediaImage } = require('./image-processor');
+const { getUserAvatarUrls, getMediaUrl } = require('./media-utils');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -253,6 +253,196 @@ app.get('/api/user/me', requireAuth, (req, res) => {
     } catch (error) {
         console.error('Get user error:', error);
         res.status(500).json({ error: 'Failed to get user info' });
+    }
+});
+
+// Admin middleware - require admin role
+function requireAdmin(req, res, next) {
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Admin access required' });
+    }
+    next();
+}
+
+// POST /api/admin/media/upload - Upload media files (admin only)
+app.post('/api/admin/media/upload', requireAuth, requireAdmin, (req, res) => {
+    uploadMedia(req, res, async (err) => {
+        const uploadedFiles = [];
+        const errors = [];
+
+        try {
+            if (err) {
+                console.error('Upload error:', err);
+                return res.status(400).json({ error: err.message || 'File upload failed' });
+            }
+
+            if (!req.files || req.files.length === 0) {
+                return res.status(400).json({ error: 'No files uploaded' });
+            }
+
+            // Process each file
+            for (const file of req.files) {
+                try {
+                    const tempFilePath = file.path;
+
+                    // Validate image
+                    const isValid = await isValidImage(tempFilePath);
+                    if (!isValid) {
+                        await cleanupTempFile(tempFilePath);
+                        errors.push({ filename: file.originalname, error: 'Invalid image file' });
+                        continue;
+                    }
+
+                    // Process media image
+                    const result = await processMediaImage(tempFilePath, {
+                        maxWidth: 1920,
+                        maxHeight: 1920,
+                        quality: 85
+                    });
+
+                    // Record in media table
+                    const mediaId = crypto.randomBytes(16).toString('hex');
+                    db.prepare(`
+                        INSERT INTO media (id, filename, originalName, mimeType, size, path, thumbnailPath, uploadedBy, category)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    `).run(
+                        mediaId,
+                        result.filename,
+                        file.originalname,
+                        'image/webp',
+                        result.size,
+                        result.path,
+                        null,
+                        req.user.id,
+                        'media'
+                    );
+
+                    // Clean up temp file
+                    await cleanupTempFile(tempFilePath);
+
+                    uploadedFiles.push({
+                        id: mediaId,
+                        filename: result.filename,
+                        originalName: file.originalname,
+                        url: getMediaUrl(result.filename, 'media'),
+                        size: result.size
+                    });
+
+                } catch (error) {
+                    console.error('Error processing file:', file.originalname, error);
+                    errors.push({ filename: file.originalname, error: error.message });
+                }
+            }
+
+            res.json({
+                success: true,
+                uploaded: uploadedFiles,
+                errors: errors.length > 0 ? errors : undefined,
+                count: uploadedFiles.length
+            });
+
+        } catch (error) {
+            console.error('Media upload error:', error);
+            res.status(500).json({
+                error: 'Failed to process media',
+                details: process.env.NODE_ENV !== 'production' ? error.message : undefined
+            });
+        }
+    });
+});
+
+// GET /api/admin/media/list - List all media files (admin only)
+app.get('/api/admin/media/list', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const category = req.query.category;
+        const limit = parseInt(req.query.limit) || 50;
+        const offset = parseInt(req.query.offset) || 0;
+
+        let query = 'SELECT * FROM media';
+        let countQuery = 'SELECT COUNT(*) as total FROM media';
+        const params = [];
+
+        if (category) {
+            query += ' WHERE category = ?';
+            countQuery += ' WHERE category = ?';
+            params.push(category);
+        }
+
+        query += ' ORDER BY uploadedAt DESC LIMIT ? OFFSET ?';
+        const queryParams = [...params, limit, offset];
+
+        const mediaFiles = db.prepare(query).all(...queryParams);
+        const { total } = db.prepare(countQuery).get(...params);
+
+        // Add URLs to each file
+        const mediaWithUrls = mediaFiles.map(file => ({
+            ...file,
+            url: getMediaUrl(file.filename, file.category === 'avatar' ? 'avatars/full' : 'media'),
+            thumbnailUrl: file.thumbnailPath ? getMediaUrl(path.basename(file.thumbnailPath), 'avatars/thumbnails') : null
+        }));
+
+        // Calculate stats
+        const stats = db.prepare(`
+            SELECT 
+                COUNT(*) as totalFiles,
+                SUM(CASE WHEN category = 'avatar' THEN 1 ELSE 0 END) as avatarCount,
+                SUM(CASE WHEN category = 'media' THEN 1 ELSE 0 END) as mediaCount,
+                SUM(size) as totalSize
+            FROM media
+        `).get();
+
+        res.json({
+            files: mediaWithUrls,
+            total,
+            stats: {
+                totalFiles: stats.totalFiles || 0,
+                avatars: stats.avatarCount || 0,
+                media: stats.mediaCount || 0,
+                totalSize: stats.totalSize || 0
+            },
+            pagination: {
+                limit,
+                offset,
+                hasMore: offset + limit < total
+            }
+        });
+
+    } catch (error) {
+        console.error('List media error:', error);
+        res.status(500).json({ error: 'Failed to list media' });
+    }
+});
+
+// DELETE /api/admin/media/:fileId - Delete media file (admin only)
+app.delete('/api/admin/media/:fileId', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const file = db.prepare('SELECT * FROM media WHERE id = ?').get(req.params.fileId);
+
+        if (!file) {
+            return res.status(404).json({ error: 'File not found' });
+        }
+
+        // Don't allow deleting avatars through this endpoint
+        if (file.category === 'avatar') {
+            return res.status(400).json({ error: 'Use the avatar delete endpoint to remove user avatars' });
+        }
+
+        // Delete physical file
+        const filePath = path.join(__dirname, '..', file.path);
+        try {
+            await fs.unlink(filePath);
+        } catch (err) {
+            console.error('Error deleting file:', err);
+        }
+
+        // Delete from database
+        db.prepare('DELETE FROM media WHERE id = ?').run(req.params.fileId);
+
+        res.json({ success: true, message: 'File deleted successfully' });
+
+    } catch (error) {
+        console.error('Delete media error:', error);
+        res.status(500).json({ error: 'Failed to delete media' });
     }
 });
 
