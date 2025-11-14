@@ -13,6 +13,8 @@ A complete, portable authentication system built with Better Auth, featuring ema
 - ✅ **User Roles** - User and admin role system
 - ✅ **Modern UI** - Clean Material Design with dark/light mode
 - ✅ **Global Modal System** - Professional modals replacing browser alerts
+- ✅ **Media Storage** - User avatar uploads with image processing
+- ✅ **Admin Media Library** - Upload and manage media files
 - ✅ **SQLite Database** - Local file-based database (no external DB required)
 
 ## 📋 Prerequisites
@@ -117,7 +119,14 @@ better-auth/
 ├── app/
 │   ├── better-auth.js      # Better Auth configuration
 │   ├── email-config.js     # Email sending configuration
-│   └── index.js            # Express server
+│   ├── index.js            # Express server
+│   ├── upload-middleware.js # File upload configuration
+│   ├── image-processor.js  # Image resize/optimization
+│   └── media-utils.js      # Media helper functions
+├── storage/                # Uploaded files
+│   ├── avatars/           # User avatars
+│   ├── media/             # Admin uploads
+│   └── temp/              # Temporary files
 ├── public/
 │   ├── index.html          # Landing page
 │   ├── signup.html         # Signup page
@@ -185,6 +194,13 @@ sqlite3 sqlite.db "UPDATE user SET role = 'admin' WHERE email = 'user@example.co
 - `POST /api/auth/forget-password` - Send password reset email
 - `POST /api/auth/reset-password` - Reset password with token
 
+### Media Endpoints
+- `POST /api/user/avatar` - Upload user avatar
+- `GET /api/user/avatar` - Get current user's avatar
+- `DELETE /api/user/avatar` - Delete user avatar
+- `GET /uploads/avatars/full/:filename` - Serve full-size avatar
+- `GET /uploads/avatars/thumbnails/:filename` - Serve avatar thumbnail
+
 ### Admin Endpoints (Requires Admin Role)
 - `GET /api/auth/admin/list-users` - List all users
 - `POST /api/auth/admin/create-user` - Create new user
@@ -195,6 +211,9 @@ sqlite3 sqlite.db "UPDATE user SET role = 'admin' WHERE email = 'user@example.co
 - `POST /api/auth/admin/remove-user` - Delete a user
 - `GET /api/auth/admin/list-sessions` - List all sessions
 - `POST /api/auth/admin/revoke-session` - Revoke a session
+- `POST /api/admin/media/upload` - Upload media files
+- `GET /api/admin/media/list` - List all media
+- `DELETE /api/admin/media/:id` - Delete media file
 
 ## 🎨 Customization
 
