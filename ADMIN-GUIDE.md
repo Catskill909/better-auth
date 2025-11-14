@@ -1,5 +1,32 @@
 # Admin User Management Guide
 
+## 🎯 Quick Start
+
+### **How to Access Admin Dashboard:**
+
+**Step 1: Sign up at your production site**
+```
+Visit: https://auth.supersoul.top
+Create an account with your email
+```
+
+**Step 2: Make yourself admin (in Coolify Terminal)**
+```bash
+cd /app
+node make-admin.js your-email@example.com
+```
+
+**Step 3: Access the dashboard**
+```
+1. Sign in at https://auth.supersoul.top
+2. Click "Dashboard" button
+3. Click "🔐 Admin Dashboard" button
+```
+
+**That's it!** You're now an admin and can manage all users.
+
+---
+
 ## Overview
 
 The admin dashboard provides a complete user management interface built with Better Auth's admin plugin. This guide covers all admin features and how to use them.
