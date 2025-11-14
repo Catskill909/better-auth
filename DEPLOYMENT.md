@@ -89,12 +89,23 @@ git push origin main
 4. Enable **Force HTTPS**
 5. Click **Save**
 
-#### C. Configure Persistent Storage (CRITICAL for SQLite!)
+#### C. Configure Persistent Storage (CRITICAL for SQLite & Media Files!)
+
+**Storage 1: Database (Already configured ✅)**
 1. **Storage** tab → **Add Persistent Storage**
 2. **Source:** `/app/data`
 3. **Destination:** `/app/data`
 4. **Is Directory:** ✅ Yes
 5. Click **Save**
+
+**Storage 2: Media Files (NEW - Required for Phase 2!)**
+1. **Storage** tab → **Add Persistent Storage** (click + Add again)
+2. **Source:** `/app/storage`
+3. **Destination:** `/app/storage`
+4. **Is Directory:** ✅ Yes
+5. Click **Save**
+
+⚠️ **Important:** Without `/app/storage` persistence, uploaded avatars and media will be lost on each deployment!
 
 #### D. Set Environment Variables
 
