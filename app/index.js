@@ -150,9 +150,9 @@ app.post('/api/user/avatar', requireAuth, (req, res) => {
                 result.filename,
                 req.file.originalname,
                 'image/webp',
-                result.size,
+                req.file.size,
                 result.fullPath,
-                result.thumbnailPath,
+                result.thumbPath,
                 req.user.id,
                 'avatar'
             );
