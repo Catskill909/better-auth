@@ -88,6 +88,15 @@ The admin dashboard provides comprehensive user management capabilities:
 - **View active sessions** for all users
 - **Revoke sessions** to force logout
 - **Monitor user activity** with IP and user agent info
+- **Session details** including creation time and expiration
+
+### Media Library
+- **Upload images** for general use
+- **View all media files** in a grid layout
+- **Delete media** with confirmation
+- **Copy URLs** to clipboard for easy sharing
+- **Filter by category** (avatars, media)
+- **Storage statistics** showing total files and disk usage
 
 ### Statistics
 - Total users count
