@@ -17,7 +17,13 @@ if (!email) {
 }
 
 try {
-    const dbPath = path.join(__dirname, 'sqlite.db');
+    // Auto-detect database path based on environment
+    const dbPath = process.env.NODE_ENV === 'production'
+        ? '/app/data/sqlite.db'
+        : path.join(__dirname, 'sqlite.db');
+    
+    console.log(`📁 Using database: ${dbPath}`);
+    
     const db = new Database(dbPath);
 
     // Check if user exists
