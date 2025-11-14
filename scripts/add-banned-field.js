@@ -16,16 +16,16 @@ try {
     // Check if banned column exists
     const tableInfo = db.prepare("PRAGMA table_info(user)").all();
     const hasBanned = tableInfo.some(col => col.name === 'banned');
-    
+
     if (!hasBanned) {
         console.log('📋 Adding banned, banReason, and banExpiresAt columns to user table...');
-        
+
         db.exec(`
             ALTER TABLE user ADD COLUMN banned INTEGER DEFAULT 0;
             ALTER TABLE user ADD COLUMN banReason TEXT;
             ALTER TABLE user ADD COLUMN banExpiresAt INTEGER;
         `);
-        
+
         console.log('✅ Migration completed successfully!');
     } else {
         console.log('✅ banned column already exists, no migration needed');
