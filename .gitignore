@@ -10,6 +10,8 @@ node_modules/
 sqlite.db
 *.db
 *.db-journal
+*.db-shm
+*.db-wal
 
 # Logs
 logs
