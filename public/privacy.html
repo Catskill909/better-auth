@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Better Auth</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .privacy-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .privacy-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .privacy-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .privacy-header .last-updated {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
+        .privacy-section {
+            margin-bottom: 40px;
+        }
+
+        .privacy-section h2 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+
+        .privacy-section h3 {
+            font-size: 1.3em;
+            margin: 25px 0 15px;
+            color: var(--text-primary);
+        }
+
+        .privacy-section p {
+            line-height: 1.8;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+        }
+
+        .privacy-section ul {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+
+        .privacy-section li {
+            line-height: 1.8;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .highlight-box {
+            background: var(--surface-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .contact-box {
+            background: var(--surface-color);
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        .contact-box h2 {
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .contact-box p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .contact-box a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 30px;
+            transition: gap 0.2s;
+        }
+
+        .back-link:hover {
+            gap: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="privacy-container">
+        <a href="/" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            Back to Home
+        </a>
+
+        <div class="privacy-header">
+            <h1>Privacy Policy</h1>
+            <p class="last-updated">Last Updated: November 14, 2025</p>
+        </div>
+
+        <div class="privacy-section">
+            <h2>Introduction</h2>
+            <p>
+                Welcome to Better Auth. We respect your privacy and are committed to protecting your personal data.
+                This privacy policy explains how we collect, use, and safeguard your information when you use our
+                authentication service.
+            </p>
+        </div>
+
+        <div class="privacy-section">
+            <h2>Information We Collect</h2>
+
+            <h3>Information You Provide</h3>
+            <ul>
+                <li><strong>Account Information:</strong> Email address, name, and password (encrypted)</li>
+                <li><strong>Profile Information:</strong> Any additional information you choose to provide</li>
+            </ul>
+
+            <h3>Information Collected Automatically</h3>
+            <ul>
+                <li><strong>Authentication Data:</strong> Session tokens, login timestamps</li>
+                <li><strong>Usage Data:</strong> IP addresses, browser type, device information</li>
+                <li><strong>Security Data:</strong> Authentication attempts, security events</li>
+            </ul>
+
+            <h3>Third-Party Authentication</h3>
+            <p>
+                When you sign in with Google, we receive basic profile information (name, email, profile picture)
+                as permitted by your Google account settings.
+            </p>
+        </div>
+
+        <div class="privacy-section">
+            <h2>How We Use Your Information</h2>
+            <ul>
+                <li>Provide and maintain our authentication services</li>
+                <li>Verify your identity and secure your account</li>
+                <li>Send important service-related notifications</li>
+                <li>Improve and optimize our services</li>
+                <li>Detect and prevent fraud or security issues</li>
+                <li>Comply with legal obligations</li>
+            </ul>
+        </div>
+
+        <div class="privacy-section">
+            <h2>Data Security</h2>
+            <div class="highlight-box">
+                <p>
+                    <i class="fas fa-shield-alt" style="color: var(--primary-color); margin-right: 8px;"></i>
+                    We implement industry-standard security measures to protect your data:
+                </p>
+                <ul>
+                    <li>Passwords are encrypted using bcrypt hashing</li>
+                    <li>All connections use HTTPS encryption</li>
+                    <li>Session tokens are securely generated and stored</li>
+                    <li>Regular security audits and updates</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="privacy-section">
+            <h2>Data Retention</h2>
+            <p>
+                We retain your personal information for as long as your account is active or as needed to provide
+                you services. You may request deletion of your account and associated data at any time by contacting
+                us.
+            </p>
+        </div>
+
+        <div class="privacy-section">
+            <h2>Third-Party Services</h2>
+            <p>
+                We use the following third-party services:
+            </p>
+            <ul>
+                <li><strong>Google OAuth:</strong> For Google sign-in authentication</li>
+                <li><strong>Email Service:</strong> For sending verification and password reset emails</li>
+            </ul>
+            <p>
+                These services have their own privacy policies governing the use of your information.
+            </p>
+        </div>
+
+        <div class="privacy-section">
+            <h2>Your Rights</h2>
+            <p>You have the right to:</p>
+            <ul>
+                <li>Access the personal data we hold about you</li>
+                <li>Request correction of inaccurate data</li>
+                <li>Request deletion of your account and data</li>
+                <li>Export your data in a portable format</li>
+                <li>Opt-out of non-essential communications</li>
+            </ul>
+        </div>
+
+        <div class="privacy-section">
+            <h2>Cookies and Tracking</h2>
+            <p>
+                We use essential cookies and local storage to maintain your authenticated session. These are
+                necessary for the service to function and cannot be disabled. We do not use tracking cookies
+                for advertising purposes.
+            </p>
+        </div>
+
+        <div class="privacy-section">
+            <h2>Children's Privacy</h2>
+            <p>
+                Our service is not intended for children under 13 years of age. We do not knowingly collect
+                personal information from children under 13.
+            </p>
+        </div>
+
+        <div class="privacy-section">
+            <h2>Changes to This Policy</h2>
+            <p>
+                We may update this privacy policy from time to time. We will notify you of any changes by
+                updating the "Last Updated" date at the top of this policy.
+            </p>
+        </div>
+
+        <div class="privacy-section">
+            <h2>International Data Transfers</h2>
+            <p>
+                Your information may be transferred to and processed in countries other than your country of
+                residence. We ensure appropriate safeguards are in place to protect your data in accordance
+                with this privacy policy.
+            </p>
+        </div>
+
+        <div class="contact-box">
+            <h2>Contact Us</h2>
+            <p>
+                If you have any questions about this Privacy Policy or how we handle your data,
+                please contact us at:
+            </p>
+            <p>
+                <i class="fas fa-envelope"></i>
+                <a href="mailto:paullnyc@gmail.com">paullnyc@gmail.com</a>
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>

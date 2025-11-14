@@ -241,30 +241,27 @@ See [Better Auth Admin Plugin Docs](https://www.better-auth.com/docs/plugins/adm
 - [Better Auth Admin Plugin](https://www.better-auth.com/docs/plugins/admin)
 - [Better Auth Email Verification](https://www.better-auth.com/docs/plugins/email-verification)
 
-## 🔒 Security Notes
+## 🚀 Production Deployment
 
-⚠️ **This is a development setup. See [SECURITY-AUDIT.md](SECURITY-AUDIT.md) for production deployment checklist.**
+Ready to deploy to production? See **[DEPLOYMENT.md](DEPLOYMENT.md)** for:
+- Complete deployment guide for Coolify
+- Environment variables setup
+- Google OAuth configuration
+- Database setup (SQLite with persistent storage)
+- Daily development workflow
 
-### Development Security
-- `.env` file is gitignored
-- Passwords are hashed with bcrypt
-- Sessions use secure tokens
-- Email verification required
-- Role-based access control
+**Production URL:** https://auth.supersoul.top
 
-### Before Production Deployment
-- [ ] Enable HTTPS (required)
-- [ ] Rotate all secrets (new BETTER_AUTH_SECRET)
-- [ ] Move to production database (PostgreSQL/MySQL)
-- [ ] Move SMTP credentials to environment variables
-- [ ] Enable rate limiting
-- [ ] Configure CSP headers
-- [ ] Set secure cookie flags
-- [ ] Add monitoring and logging
-- [ ] Configure database backups
-- [ ] Update Google OAuth redirect URIs
+### Security Features
+- ✅ HTTPS enforced (Coolify SSL)
+- ✅ Different secrets for dev/production
+- ✅ Passwords hashed with bcrypt
+- ✅ Session tokens secure
+- ✅ Email verification required
+- ✅ Role-based access control
+- ✅ Environment variables for secrets
 
-**See [SECURITY-AUDIT.md](SECURITY-AUDIT.md) for complete security checklist and recommendations.**
+**See [SECURITY-AUDIT.md](SECURITY-AUDIT.md) for complete security analysis.**
 
 ## 📝 License
 

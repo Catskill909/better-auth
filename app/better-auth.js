@@ -6,9 +6,16 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const { sendVerificationEmail, sendPasswordResetEmail, sendPasswordChangedEmail } = require('./email-config');
 
+// Database path - supports production persistent storage
+const dbPath = process.env.NODE_ENV === 'production'
+    ? '/app/data/sqlite.db'
+    : path.join(__dirname, '..', 'sqlite.db');
+
+console.log(`📁 Database path: ${dbPath}`);
+
 // Initialize Better Auth
 const auth = betterAuth({
-    database: new Database(path.join(__dirname, '..', 'sqlite.db')),
+    database: new Database(dbPath),
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID,
