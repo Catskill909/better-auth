@@ -274,3 +274,4 @@ For Better Auth issues, visit: https://github.com/better-auth/better-auth
 ---
 
 **Built with ❤️ using Better Auth**
+# Force rebuild - install multer and sharp
