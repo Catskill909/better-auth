@@ -56,7 +56,129 @@ app.use('/uploads/avatars/full', express.static(path.join(__dirname, '..', 'stor
 app.use('/uploads/avatars/thumbnails', express.static(path.join(__dirname, '..', 'storage', 'avatars', 'thumbnails')));
 app.use('/uploads/media', express.static(path.join(__dirname, '..', 'storage', 'media')));
 
-// Mount Better Auth handler at /api/auth/*
+// ============================================
+// Custom Admin Endpoints (must be before Better Auth handler)
+// ============================================
+
+// These need to be defined BEFORE the Better Auth catch-all handler
+// because they use the /api/auth/* path that Better Auth intercepts
+
+// GET /api/auth/admin/list-sessions - List all active sessions (admin only)
+app.get('/api/auth/admin/list-sessions', async (req, res) => {
+    try {
+        // Manual auth check (requireAuth middleware needs to be defined first)
+        const sessionToken = req.headers.authorization?.replace('Bearer ', '');
+        if (!sessionToken) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
+
+        const session = db.prepare('SELECT * FROM session WHERE token = ? AND expiresAt > ?')
+            .get(sessionToken, Date.now());
+
+        if (!session) {
+            return res.status(401).json({ error: 'Invalid or expired session' });
+        }
+
+        const user = db.prepare('SELECT * FROM user WHERE id = ?').get(session.userId);
+
+        if (!user || user.role !== 'admin') {
+            return res.status(403).json({ error: 'Admin access required' });
+        }
+
+        const sessions = db.prepare(`
+            SELECT 
+                session.id,
+                session.userId,
+                session.token,
+                session.expiresAt,
+                session.createdAt,
+                session.ipAddress,
+                session.userAgent,
+                user.email,
+                user.name,
+                user.role
+            FROM session
+            LEFT JOIN user ON session.userId = user.id
+            WHERE session.expiresAt > ?
+            ORDER BY session.createdAt DESC
+        `).all(Date.now());
+
+        const formattedSessions = sessions.map(s => ({
+            id: s.id,
+            userId: s.userId,
+            email: s.email,
+            name: s.name,
+            role: s.role,
+            createdAt: s.createdAt,
+            expiresAt: s.expiresAt,
+            ipAddress: s.ipAddress || 'Unknown',
+            userAgent: s.userAgent || 'Unknown',
+            isActive: s.expiresAt > Date.now()
+        }));
+
+        res.json({
+            sessions: formattedSessions,
+            total: formattedSessions.length
+        });
+
+    } catch (error) {
+        console.error('List sessions error:', error);
+        res.status(500).json({ error: 'Failed to list sessions' });
+    }
+});
+
+// POST /api/auth/admin/revoke-session - Revoke a session (admin only)
+app.post('/api/auth/admin/revoke-session', async (req, res) => {
+    try {
+        // Manual auth check
+        const sessionToken = req.headers.authorization?.replace('Bearer ', '');
+        if (!sessionToken) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
+
+        const session = db.prepare('SELECT * FROM session WHERE token = ? AND expiresAt > ?')
+            .get(sessionToken, Date.now());
+
+        if (!session) {
+            return res.status(401).json({ error: 'Invalid or expired session' });
+        }
+
+        const user = db.prepare('SELECT * FROM user WHERE id = ?').get(session.userId);
+
+        if (!user || user.role !== 'admin') {
+            return res.status(403).json({ error: 'Admin access required' });
+        }
+
+        const { sessionId } = req.body;
+
+        if (!sessionId) {
+            return res.status(400).json({ error: 'Session ID is required' });
+        }
+
+        const targetSession = db.prepare('SELECT * FROM session WHERE id = ?').get(sessionId);
+
+        if (!targetSession) {
+            return res.status(404).json({ error: 'Session not found' });
+        }
+
+        if (targetSession.userId === user.id) {
+            return res.status(400).json({ error: 'Cannot revoke your own session' });
+        }
+
+        db.prepare('DELETE FROM session WHERE id = ?').run(sessionId);
+
+        res.json({
+            success: true,
+            message: 'Session revoked successfully'
+        });
+
+    } catch (error) {
+        console.error('Revoke session error:', error);
+        res.status(500).json({ error: 'Failed to revoke session' });
+    }
+});
+
+// Mount Better Auth handler at /api/auth/* (catches all other /api/auth routes)
 app.all('/api/auth/*', toNodeHandler(auth));
 
 // Authentication middleware
@@ -445,91 +567,6 @@ app.delete('/api/admin/media/:fileId', requireAuth, requireAdmin, async (req, re
     } catch (error) {
         console.error('Delete media error:', error);
         res.status(500).json({ error: 'Failed to delete media' });
-    }
-});
-
-// ============================================
-// Admin Session Management Endpoints
-// ============================================
-
-// GET /api/auth/admin/list-sessions - List all active sessions (admin only)
-app.get('/api/auth/admin/list-sessions', requireAuth, requireAdmin, (req, res) => {
-    try {
-        const sessions = db.prepare(`
-            SELECT 
-                session.id,
-                session.userId,
-                session.token,
-                session.expiresAt,
-                session.createdAt,
-                session.ipAddress,
-                session.userAgent,
-                user.email,
-                user.name,
-                user.role
-            FROM session
-            LEFT JOIN user ON session.userId = user.id
-            WHERE session.expiresAt > ?
-            ORDER BY session.createdAt DESC
-        `).all(Date.now());
-
-        // Format the sessions for display
-        const formattedSessions = sessions.map(session => ({
-            id: session.id,
-            userId: session.userId,
-            email: session.email,
-            name: session.name,
-            role: session.role,
-            createdAt: session.createdAt,
-            expiresAt: session.expiresAt,
-            ipAddress: session.ipAddress || 'Unknown',
-            userAgent: session.userAgent || 'Unknown',
-            isActive: session.expiresAt > Date.now()
-        }));
-
-        res.json({
-            sessions: formattedSessions,
-            total: formattedSessions.length
-        });
-
-    } catch (error) {
-        console.error('List sessions error:', error);
-        res.status(500).json({ error: 'Failed to list sessions' });
-    }
-});
-
-// POST /api/auth/admin/revoke-session - Revoke a session (admin only)
-app.post('/api/auth/admin/revoke-session', requireAuth, requireAdmin, (req, res) => {
-    try {
-        const { sessionId } = req.body;
-
-        if (!sessionId) {
-            return res.status(400).json({ error: 'Session ID is required' });
-        }
-
-        // Check if session exists
-        const session = db.prepare('SELECT * FROM session WHERE id = ?').get(sessionId);
-
-        if (!session) {
-            return res.status(404).json({ error: 'Session not found' });
-        }
-
-        // Prevent admin from revoking their own session
-        if (session.userId === req.user.id) {
-            return res.status(400).json({ error: 'Cannot revoke your own session' });
-        }
-
-        // Delete the session
-        db.prepare('DELETE FROM session WHERE id = ?').run(sessionId);
-
-        res.json({
-            success: true,
-            message: 'Session revoked successfully'
-        });
-
-    } catch (error) {
-        console.error('Revoke session error:', error);
-        res.status(500).json({ error: 'Failed to revoke session' });
     }
 });
 
