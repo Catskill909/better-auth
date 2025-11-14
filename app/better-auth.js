@@ -31,6 +31,16 @@ const auth = betterAuth({
     database: new Database(dbPath),
     baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
 
+    // Session configuration
+    session: {
+        expiresIn: 60 * 60 * 24 * 30, // 30 days in seconds
+        updateAge: 60 * 60 * 24, // Update session every 24 hours
+        cookieCache: {
+            enabled: true,
+            maxAge: 60 * 60 * 24 * 30 // 30 days
+        }
+    },
+
     // Advanced configuration for production stability
     advanced: {
         generateId: undefined, // Use default ID generation
@@ -41,6 +51,7 @@ const auth = betterAuth({
         defaultCookieAttributes: {
             sameSite: 'lax',
             secure: process.env.NODE_ENV === 'production',
+            maxAge: 60 * 60 * 24 * 30 // 30 days
         },
     },
 
