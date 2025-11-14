@@ -13,9 +13,20 @@ const dbPath = process.env.NODE_ENV === 'production'
 
 console.log(`📁 Database path: ${dbPath}`);
 
+// Ensure data directory exists in production
+if (process.env.NODE_ENV === 'production') {
+    const fs = require('fs');
+    const dataDir = path.dirname(dbPath);
+    if (!fs.existsSync(dataDir)) {
+        console.log(`📁 Creating data directory: ${dataDir}`);
+        fs.mkdirSync(dataDir, { recursive: true });
+    }
+}
+
 // Initialize Better Auth
 const auth = betterAuth({
     database: new Database(dbPath),
+    baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID,
