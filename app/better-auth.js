@@ -1,5 +1,8 @@
 // Integration of Better Auth into the application
-require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
+// Only load .env in development (Coolify provides env vars in production)
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
+}
 const { betterAuth } = require('better-auth');
 const { admin } = require('better-auth/plugins');
 const Database = require('better-sqlite3');

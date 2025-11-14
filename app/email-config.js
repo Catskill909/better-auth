@@ -1,5 +1,8 @@
 // Email configuration using DirectAdmin SMTP
-require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
+// Only load .env in development (Coolify provides env vars in production)
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
+}
 const nodemailer = require('nodemailer');
 
 // Create SMTP transporter using DirectAdmin email server
