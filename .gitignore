@@ -33,6 +33,8 @@ Thumbs.db
 .credentials
 .local-info.md
 LOCAL-CREDENTIALS.md
+create-admin.js
+setup-local-admin.js
 
 # Test files
 test-auth.js

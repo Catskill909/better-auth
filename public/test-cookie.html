@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cookie Test</title>
+    <script src="/better-auth-client.js"></script>
+    <script src="/auth-client.js"></script>
+</head>
+<body>
+    <h1>Cookie Test</h1>
+    <button onclick="testSignin()">Test Signin</button>
+    <button onclick="checkCookie()">Check Cookie</button>
+    <button onclick="testSession()">Test Get Session</button>
+    <div id="output"></div>
+
+    <script>
+        async function testSignin() {
+            const output = document.getElementById('output');
+            output.innerHTML = 'Signing in...';
+            
+            try {
+                const result = await authClient.signIn.email({
+                    email: 'admin@local.test',
+                    password: 'Admin123!'
+                });
+                
+                output.innerHTML = '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+                
+                // Check cookie immediately after signin
+                setTimeout(() => {
+                    output.innerHTML += '<br><strong>Cookie after signin:</strong> ' + document.cookie;
+                }, 500);
+            } catch (error) {
+                output.innerHTML = 'Error: ' + error.message;
+            }
+        }
+        
+        function checkCookie() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<strong>Current cookies:</strong><br>' + document.cookie;
+        }
+        
+        async function testSession() {
+            const output = document.getElementById('output');
+            output.innerHTML = 'Getting session...';
+            
+            try {
+                const result = await authClient.getSession();
+                output.innerHTML = '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+            } catch (error) {
+                output.innerHTML = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

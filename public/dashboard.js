@@ -1,20 +1,34 @@
-// Check if user is logged in
-const token = localStorage.getItem('authToken');
+// Check if user is logged in using Better Auth session
+async function checkAuth() {
+    try {
+        const { data: session, error } = await authClient.getSession();
 
-if (!token) {
-    window.location.href = '/signin.html';
+        if (error || !session) {
+            console.log('No active session, redirecting to signin');
+            window.location.href = '/signin.html';
+            return null;
+        }
+
+        return session.user;
+    } catch (err) {
+        console.error('Auth check error:', err);
+        window.location.href = '/signin.html';
+        return null;
+    }
 }
 
 // Avatar upload functionality
 let currentUser = null;
 
 async function loadAvatar() {
+    // Get user from session
+    currentUser = await checkAuth();
+    if (!currentUser) return;
+
     try {
         const response = await fetch('/api/user/me', {
             method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
+            credentials: 'include', // Include cookies for Better Auth
         });
 
         if (response.ok) {
@@ -75,9 +89,7 @@ document.getElementById('avatarInput').addEventListener('change', async (e) => {
 
         const response = await fetch('/api/user/avatar', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
+            credentials: 'include',
             body: formData,
         });
 
@@ -119,9 +131,7 @@ document.getElementById('deleteAvatarBtn').addEventListener('click', async () =>
     try {
         const response = await fetch('/api/user/avatar', {
             method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
+            credentials: 'include',
         });
 
         const data = await response.json();
@@ -153,9 +163,7 @@ async function loadUserInfo() {
     try {
         const response = await fetch('/api/auth/get-session', {
             method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
+            credentials: 'include',
         });
 
         if (response.ok) {
@@ -163,7 +171,6 @@ async function loadUserInfo() {
             displayUserInfo(data);
         } else {
             // Session invalid, redirect to sign in
-            localStorage.removeItem('authToken');
             window.location.href = '/signin.html';
         }
     } catch (error) {
@@ -212,8 +219,8 @@ function displayUserInfo(data) {
                 try {
                     const response = await fetch('/api/auth/send-verification-email', {
                         method: 'POST',
+                        credentials: 'include',
                         headers: {
-                            'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({ email: data.user.email }),
@@ -243,18 +250,12 @@ function displayUserInfo(data) {
 // Sign out functionality
 document.getElementById('signoutBtn').addEventListener('click', async () => {
     try {
-        await fetch('/api/auth/sign-out', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
-        });
+        await authClient.signOut();
     } catch (error) {
         console.error('Sign out error:', error);
     }
 
-    // Clear token and redirect
-    localStorage.removeItem('authToken');
+    // Redirect to home
     window.location.href = '/index.html';
 });
 

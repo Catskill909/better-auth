@@ -1,9 +1,6 @@
 console.log('Signin script loaded');
 
-// Create Better Auth client
-const authClient = BetterAuthClient.createAuthClient({
-    baseURL: window.location.origin
-});
+// Use authClient from auth-client.js (already initialized with credentials: 'include')
 
 const signinForm = document.getElementById('signinForm');
 const googleSignInBtn = document.getElementById('googleSignIn');
@@ -46,38 +43,30 @@ if (signinForm) {
         messageDiv.textContent = '';
 
         try {
-            console.log('Sending request to /api/auth/sign-in/email');
-            const response = await fetch('/api/auth/sign-in/email', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password }),
+            console.log('Signing in with Better Auth client');
+            const { data, error } = await authClient.signIn.email({
+                email,
+                password,
             });
 
-            console.log('Response status:', response.status);
-            const data = await response.json();
-            console.log('Response data:', data);
+            console.log('Sign in response:', { data, error });
 
-            if (response.ok) {
+            if (error) {
+                messageDiv.className = 'message error';
+                messageDiv.textContent = error.message || 'Invalid email or password.';
+            } else {
                 messageDiv.className = 'message success';
                 messageDiv.textContent = 'Sign in successful! Redirecting...';
-
-                // Store the session token
-                localStorage.setItem('authToken', data.token);
 
                 // Redirect to dashboard after 1 second
                 setTimeout(() => {
                     window.location.href = '/dashboard.html';
                 }, 1000);
-            } else {
-                messageDiv.className = 'message error';
-                messageDiv.textContent = (data.message || 'Invalid email or password.');
             }
-        } catch (error) {
+        } catch (err) {
             messageDiv.className = 'message error';
             messageDiv.textContent = 'Network error. Please check your connection.';
-            console.error('Error:', error);
+            console.error('Error:', err);
         }
 
         return false;

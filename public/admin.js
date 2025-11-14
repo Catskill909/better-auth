@@ -3,44 +3,27 @@ let currentPage = 1;
 let limit = 10;
 let searchQuery = '';
 let currentFilter = 'all';
-let token = null;
 
 // Check if user is admin on page load
 async function checkAdminAccess() {
-    token = localStorage.getItem('authToken');
-    if (!token) {
-        window.location.href = '/signin.html';
-        return false;
-    }
-
     try {
-        const response = await fetch('/api/auth/get-session', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
+        const { data: session, error } = await authClient.getSession();
 
-        if (!response.ok) {
-            window.location.href = '/signin.html';
-            return false;
-        }
-
-        const data = await response.json();
-        if (!data.user) {
+        if (error || !session) {
             window.location.href = '/signin.html';
             return false;
         }
 
         // Check if user has admin role
-        if (data.user.role !== 'admin') {
+        if (session.user.role !== 'admin') {
             showError('Access denied. Admin privileges required.', 'Access Denied');
             setTimeout(() => window.location.href = '/dashboard.html', 2000);
             return false;
         }
 
         // Display admin info in sidebar
-        document.getElementById('adminName').textContent = data.user.name || data.user.email;
-        document.getElementById('adminEmail').textContent = data.user.email;
+        document.getElementById('adminName').textContent = session.user.name || session.user.email;
+        document.getElementById('adminEmail').textContent = session.user.email;
 
         return true;
     } catch (error) {
@@ -52,7 +35,6 @@ async function checkAdminAccess() {
 
 // Load users from Better Auth admin API
 async function loadUsers() {
-    const token = localStorage.getItem('authToken');
     document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="7" class="loading">Loading users...</td></tr>';
 
     try {
@@ -83,9 +65,7 @@ async function loadUsers() {
         }
 
         const response = await fetch(`/api/auth/admin/list-users?${params}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            credentials: 'include'
         });
 
         if (!response.ok) {
@@ -131,28 +111,28 @@ function displayUsers(users) {
 
 // Update statistics
 async function updateStats(totalUsers) {
-    const token = localStorage.getItem('authToken');
+
 
     document.getElementById('totalUsers').textContent = totalUsers;
 
     try {
         // Fetch verified users count
         const verifiedResponse = await fetch('/api/auth/admin/list-users?filterField=emailVerified&filterValue=true&limit=1000', {
-            headers: { 'Authorization': `Bearer ${token}` }
+            credentials: 'include'
         });
         const verifiedData = await verifiedResponse.json();
         document.getElementById('verifiedUsers').textContent = verifiedData.total || 0;
 
         // Fetch banned users count
         const bannedResponse = await fetch('/api/auth/admin/list-users?filterField=banned&filterValue=true&limit=1000', {
-            headers: { 'Authorization': `Bearer ${token}` }
+            credentials: 'include'
         });
         const bannedData = await bannedResponse.json();
         document.getElementById('bannedUsers').textContent = bannedData.total || 0;
 
         // Fetch admin users count
         const adminResponse = await fetch('/api/auth/admin/list-users?filterField=role&filterValue=admin&limit=1000', {
-            headers: { 'Authorization': `Bearer ${token}` }
+            credentials: 'include'
         });
         const adminData = await adminResponse.json();
         document.getElementById('adminUsers').textContent = adminData.total || 0;
@@ -172,7 +152,7 @@ function updatePagination(total) {
 
 // Create new user
 async function createUser() {
-    const token = localStorage.getItem('authToken');
+
     const name = document.getElementById('newUserName').value;
     const email = document.getElementById('newUserEmail').value;
     const password = document.getElementById('newUserPassword').value;
@@ -188,7 +168,6 @@ async function createUser() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
                 name,
@@ -216,12 +195,12 @@ async function createUser() {
 
 // Edit user
 async function editUser(userId) {
-    const token = localStorage.getItem('authToken');
+
 
     try {
         // Get user details
         const response = await fetch(`/api/auth/admin/list-users?limit=1000`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            credentials: 'include'
         });
 
         const data = await response.json();
@@ -249,7 +228,7 @@ async function editUser(userId) {
 
 // Update user
 async function updateUser() {
-    const token = localStorage.getItem('authToken');
+
     const userId = document.getElementById('editUserId').value;
     const name = document.getElementById('editUserName').value;
     const email = document.getElementById('editUserEmail').value;
@@ -262,7 +241,6 @@ async function updateUser() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
                 userId,
@@ -283,7 +261,6 @@ async function updateUser() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
                 userId,
@@ -316,14 +293,13 @@ async function deleteUser(userId) {
         return;
     }
 
-    const token = localStorage.getItem('authToken');
+
 
     try {
         const response = await fetch('/api/auth/admin/remove-user', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ userId })
         });
@@ -343,7 +319,7 @@ async function deleteUser(userId) {
 
 // Toggle ban status
 async function toggleBanUser(userId, isBanned) {
-    const token = localStorage.getItem('authToken');
+
     const endpoint = isBanned ? '/api/auth/admin/unban-user' : '/api/auth/admin/ban-user';
 
     try {
@@ -351,7 +327,6 @@ async function toggleBanUser(userId, isBanned) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ userId })
         });
@@ -371,13 +346,13 @@ async function toggleBanUser(userId, isBanned) {
 
 // Load user sessions
 async function loadSessions() {
-    const token = localStorage.getItem('authToken');
+
     const container = document.getElementById('sessionsContainer');
     container.innerHTML = '<p class="loading">Loading sessions...</p>';
 
     try {
         const response = await fetch('/api/auth/admin/list-sessions', {
-            headers: { 'Authorization': `Bearer ${token}` }
+            credentials: 'include'
         });
 
         if (!response.ok) {
@@ -445,14 +420,13 @@ async function revokeSession(sessionToken) {
         return;
     }
 
-    const token = localStorage.getItem('authToken');
+
 
     try {
         const response = await fetch('/api/auth/admin/revoke-session', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ sessionToken })
         });
@@ -533,7 +507,7 @@ async function signOut() {
         'Sign Out'
     );
     if (confirmed) {
-        localStorage.removeItem('authToken');
+        await authClient.signOut();
         window.location.href = '/signin.html';
     }
 }
@@ -557,9 +531,7 @@ async function loadMedia() {
     try {
         const category = currentMediaFilter || '';
         const response = await fetch(`/api/admin/media/list?category=${category}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
+            credentials: 'include',
         });
 
         if (!response.ok) {
@@ -648,9 +620,7 @@ async function uploadMediaFiles(files) {
     try {
         const response = await fetch('/api/admin/media/upload', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
+            credentials: 'include',
             body: formData,
         });
 
@@ -698,9 +668,7 @@ async function deleteMedia(fileId, filename) {
     try {
         const response = await fetch(`/api/admin/media/${fileId}`, {
             method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
+            credentials: 'include',
         });
 
         const data = await response.json();

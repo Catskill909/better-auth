@@ -1,48 +1,44 @@
+
 # Better Auth - Complete Authentication System
 
-A complete, portable authentication system built with Better Auth, featuring email verification, password reset, and admin user management.
+A portable authentication system using Better Auth, now with secure, persistent HTTP-only cookie sessions (no localStorage tokens), email verification, password reset, and admin user management.
 
 ## 🚀 Features
 
-- ✅ **Email/Password Authentication** - Secure user signup and signin
-- ✅ **Google OAuth** - Sign in with Google account
-- ✅ **Email Verification** - DirectAdmin SMTP integration with Material Design emails
-- ✅ **Password Reset** - Secure token-based password reset flow
-- ✅ **Admin Dashboard** - Comprehensive user management interface
-- ✅ **Session Management** - View and manage active user sessions
-- ✅ **User Roles** - User and admin role system
-- ✅ **Modern UI** - Clean Material Design with dark/light mode
-- ✅ **Global Modal System** - Professional modals replacing browser alerts
-- ✅ **Media Storage** - User avatar uploads with image processing
-- ✅ **Admin Media Library** - Upload and manage media files
-- ✅ **SQLite Database** - Local file-based database (no external DB required)
+- ✅ **Email/Password Authentication** (Better Auth, secure cookies)
+- ✅ **Google OAuth**
+- ✅ **Email Verification**
+- ✅ **Password Reset**
+- ✅ **Admin Dashboard**
+- ✅ **Session Management** (persistent, HTTP-only cookies)
+- ✅ **User Roles** (admin/user)
+- ✅ **Modern UI** (Material Design, dark/light mode)
+- ✅ **Global Modal System**
+- ✅ **Media Storage** (avatars, uploads)
+- ✅ **Admin Media Library**
+- ✅ **SQLite Database** (portable, persistent)
 
 ## 📋 Prerequisites
 
-- Node.js (v14 or higher)
+- Node.js (v18 or higher recommended)
 - npm or yarn
 
 ## 🔧 Installation
 
 1. **Clone or download this directory**
-
 2. **Install dependencies**
    ```bash
    npm install
    ```
-
 3. **Set up environment variables**
-   
    Create a `.env` file in the root directory:
    ```env
    BETTER_AUTH_SECRET=your-secret-key-here
    BETTER_AUTH_URL=http://localhost:3000
-   
-   # Optional: Google OAuth (see Google OAuth Setup below)
+   # Optional: Google OAuth
    GOOGLE_CLIENT_ID=your-google-client-id
    GOOGLE_CLIENT_SECRET=your-google-client-secret
    ```
-
 4. **Run database migrations** (if needed)
    ```bash
    npm run migrate
@@ -54,57 +50,28 @@ A complete, portable authentication system built with Better Auth, featuring ema
    ```bash
    npm start
    ```
-   
    Server will run at `http://localhost:3000`
-
 2. **Create your first account**
    - Open `http://localhost:3000` in your browser
-   - Click "Sign Up" and create an account
-   - Check your email for verification link
-
+   - Sign up and verify your email
 3. **Make yourself an admin**
    ```bash
    node make-admin.js your-email@example.com
    ```
-
 4. **Access the admin dashboard**
-   - Sign in with your account
-   - Click "Admin Dashboard" button on your dashboard
-   - Or navigate to `http://localhost:3000/admin.html`
+   - Sign in and go to `/admin.html`
 
 ## 🔐 Admin Dashboard
 
-The admin dashboard provides comprehensive user management capabilities:
+The admin dashboard provides user/session/media management. All admin access is session-based (Better Auth cookies, not tokens).
 
-### User Management
-- **View all users** with pagination and search
-- **Create new users** with custom roles
-- **Edit user details** (name, email, role, verification status)
-- **Delete users** permanently
-- **Ban/Unban users** to control access
-- **Change user roles** (user ↔ admin)
+- View, create, edit, ban/unban, and delete users
+- Change user roles (admin/user)
+- View/revoke sessions
+- Upload/manage media
+- See user stats (total, verified, banned, admins)
 
-### Session Management
-- **View active sessions** for all users
-- **Revoke sessions** to force logout
-- **Monitor user activity** with IP and user agent info
-- **Session details** including creation time and expiration
-
-### Media Library
-- **Upload images** for general use
-- **View all media files** in a grid layout
-- **Delete media** with confirmation
-- **Copy URLs** to clipboard for easy sharing
-- **Filter by category** (avatars, media)
-- **Storage statistics** showing total files and disk usage
-
-### Statistics
-- Total users count
-- Verified users count
-- Banned users count
-- Admin users count
-
-## 🔐 Google OAuth Setup
+## 🔑 Google OAuth Setup
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/dashboard)
 2. Create a new project or select existing one
@@ -265,31 +232,19 @@ See [Better Auth Admin Plugin Docs](https://www.better-auth.com/docs/plugins/adm
 
 ## 📖 Documentation
 
+All detailed docs are now in the `/docs` folder:
+- [Deployment Guide](docs/DEPLOYMENT.md)
+- [Security Audit](docs/SECURITY-AUDIT.md)
+
 - [Better Auth Docs](https://www.better-auth.com/docs)
 - [Better Auth Admin Plugin](https://www.better-auth.com/docs/plugins/admin)
 - [Better Auth Email Verification](https://www.better-auth.com/docs/plugins/email-verification)
 
 ## 🚀 Production Deployment
 
-Ready to deploy to production? See **[DEPLOYMENT.md](DEPLOYMENT.md)** for:
-- Complete deployment guide for Coolify
-- Environment variables setup
-- Google OAuth configuration
-- Database setup (SQLite with persistent storage)
-- Daily development workflow
+See `/docs/DEPLOYMENT.md` for full production deployment steps, security, and troubleshooting.
 
 **Production URL:** https://auth.supersoul.top
-
-### Security Features
-- ✅ HTTPS enforced (Coolify SSL)
-- ✅ Different secrets for dev/production
-- ✅ Passwords hashed with bcrypt
-- ✅ Session tokens secure
-- ✅ Email verification required
-- ✅ Role-based access control
-- ✅ Environment variables for secrets
-
-**See [SECURITY-AUDIT.md](SECURITY-AUDIT.md) for complete security analysis.**
 
 ## 📝 License
 
@@ -302,4 +257,3 @@ For Better Auth issues, visit: https://github.com/better-auth/better-auth
 ---
 
 **Built with ❤️ using Better Auth**
-# Force rebuild - install multer and sharp

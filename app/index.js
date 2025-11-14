@@ -2,6 +2,7 @@
 
 const express = require('express');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 
 // Initialize database schema first
 console.log('🔧 Ensuring database schema exists...');
@@ -39,6 +40,9 @@ app.set('trust proxy', 1);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Middleware for parsing cookies (Better Auth uses cookies for sessions)
+app.use(cookieParser());
+
 // Health check endpoint for Coolify
 app.get('/health', (req, res) => {
     res.status(200).json({
@@ -46,6 +50,21 @@ app.get('/health', (req, res) => {
         timestamp: new Date().toISOString(),
         env: process.env.NODE_ENV || 'development'
     });
+});
+
+// Root URL: If logged in, redirect to dashboard, else show index.html
+app.get('/', async (req, res, next) => {
+    try {
+        const sessionResponse = await auth.api.getSession({ headers: req.headers });
+        if (sessionResponse && sessionResponse.user) {
+            // User is logged in, redirect to dashboard
+            return res.redirect('/dashboard.html');
+        }
+    } catch (err) {
+        // Ignore errors, fall through to static
+    }
+    // Not logged in, show landing page
+    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
 // Serve static files from public directory
@@ -66,8 +85,8 @@ app.use('/uploads/media', express.static(path.join(__dirname, '..', 'storage', '
 // GET /api/auth/admin/list-sessions - List all active sessions (admin only)
 app.get('/api/auth/admin/list-sessions', async (req, res) => {
     try {
-        // Manual auth check (requireAuth middleware needs to be defined first)
-        const sessionToken = req.headers.authorization?.replace('Bearer ', '');
+        // Get session token from cookie
+        const sessionToken = req.cookies['better-auth.session_token'];
         if (!sessionToken) {
             return res.status(401).json({ error: 'Not authenticated' });
         }
@@ -130,8 +149,8 @@ app.get('/api/auth/admin/list-sessions', async (req, res) => {
 // POST /api/auth/admin/revoke-session - Revoke a session (admin only)
 app.post('/api/auth/admin/revoke-session', async (req, res) => {
     try {
-        // Manual auth check
-        const sessionToken = req.headers.authorization?.replace('Bearer ', '');
+        // Get session token from cookie
+        const sessionToken = req.cookies['better-auth.session_token'];
         if (!sessionToken) {
             return res.status(401).json({ error: 'Not authenticated' });
         }
@@ -181,25 +200,20 @@ app.post('/api/auth/admin/revoke-session', async (req, res) => {
 // Mount Better Auth handler at /api/auth/* (catches all other /api/auth routes)
 app.all('/api/auth/*', toNodeHandler(auth));
 
-// Authentication middleware
+// Authentication middleware - Uses Better Auth's session validation
 async function requireAuth(req, res, next) {
     try {
-        const sessionToken = req.headers.authorization?.replace('Bearer ', '');
+        // Use Better Auth's API to validate the session
+        const sessionResponse = await auth.api.getSession({
+            headers: req.headers
+        });
 
-        if (!sessionToken) {
-            return res.status(401).json({ error: 'No session token provided' });
-        }
-
-        // Verify session in database
-        const session = db.prepare('SELECT * FROM session WHERE token = ? AND expiresAt > ?')
-            .get(sessionToken, Date.now());
-
-        if (!session) {
+        if (!sessionResponse || !sessionResponse.user) {
             return res.status(401).json({ error: 'Invalid or expired session' });
         }
 
-        // Get user
-        const user = db.prepare('SELECT * FROM user WHERE id = ?').get(session.userId);
+        // Check if user is banned
+        const user = db.prepare('SELECT * FROM user WHERE id = ?').get(sessionResponse.user.id);
 
         if (!user) {
             return res.status(401).json({ error: 'User not found' });
@@ -210,11 +224,11 @@ async function requireAuth(req, res, next) {
         }
 
         req.user = user;
-        req.session = session;
+        req.session = sessionResponse.session;
         next();
     } catch (error) {
         console.error('Auth middleware error:', error);
-        res.status(500).json({ error: 'Authentication failed' });
+        return res.status(401).json({ error: 'Invalid or expired session' });
     }
 }
 
@@ -571,9 +585,6 @@ app.delete('/api/admin/media/:fileId', requireAuth, requireAdmin, async (req, re
 });
 
 // Home route - serve the main page
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
-});
 
 // 404 handler
 app.use((req, res) => {
