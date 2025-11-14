@@ -30,6 +30,20 @@ if (process.env.NODE_ENV === 'production') {
 const auth = betterAuth({
     database: new Database(dbPath),
     baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
+    
+    // Advanced configuration for production stability
+    advanced: {
+        generateId: undefined, // Use default ID generation
+        useSecureCookies: process.env.NODE_ENV === 'production',
+        crossSubDomainCookies: {
+            enabled: false,
+        },
+        defaultCookieAttributes: {
+            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production',
+        },
+    },
+    
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID,

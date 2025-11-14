@@ -10,8 +10,8 @@
     "scripts": {
         "start": "node app/index.js",
         "dev": "nodemon app/index.js",
-        "migrate": "npx @better-auth/cli migrate",
-        "build": "echo 'Build complete - migrations will run at startup'"
+        "init-db": "node scripts/init-db.js",
+        "build": "echo 'Build complete - database will initialize at startup'"
     },
     "dependencies": {
         "better-auth": "^1.3.34",

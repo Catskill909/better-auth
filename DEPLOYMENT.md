@@ -274,96 +274,83 @@ Error: no such table: user
 Error: no such table: session
 ```
 
-### **Root Causes Discovered:**
+### **ROOT CAUSE IDENTIFIED:**
 
-#### 1. **Migration Prompt Hanging in Production**
-- **Issue:** `npx @better-auth/cli migrate` was waiting for `(y/N)` prompt
-- **No interactive terminal in production** → migrations never ran → no tables created
-- **Fix:** Added `--yes` flag to auto-approve migrations
-  ```javascript
-  execSync('npx @better-auth/cli migrate --yes', { stdio: 'inherit' });
-  ```
+The issue was a **database connection race condition** between the Better Auth CLI migration tool and the application startup:
 
-#### 2. **Better Auth CLI Couldn't Find Database Config**
-- **Issue:** Migration CLI didn't know WHERE to create tables
-- **Created tables in wrong location** (or not at all)
-- **App looked for tables in `/app/data/sqlite.db`** but they didn't exist
-- **Fix:** Created `/better-auth.js` at project root:
-  ```javascript
-  // better-auth.js (root level - for CLI to discover)
-  const { betterAuth } = require('better-auth');
-  const Database = require('better-sqlite3');
-  const path = require('path');
+1. ❌ **CLI migration creates separate database connection**
+2. ❌ **App loads Better Auth immediately after CLI exits**  
+3. ❌ **SQLite WAL mode: changes not visible across connections**
+4. ❌ **Result: Tables exist in one connection, but app can't see them**
 
-  const dbPath = process.env.NODE_ENV === 'production'
-      ? '/app/data/sqlite.db'
-      : path.join(__dirname, 'sqlite.db');
+### **THE REAL FIX (Finally!):**
 
-  module.exports.auth = betterAuth({
-      database: new Database(dbPath),
-  });
-  ```
+**Stop using `@better-auth/cli migrate` in production!** Instead:
 
-### **Failed Attempts (What Didn't Work):**
+1. ✅ **Created `scripts/init-db.js`** - Direct SQLite schema initialization
+2. ✅ **Runs synchronously BEFORE Better Auth loads** - No race condition
+3. ✅ **Single database connection** - No cross-connection visibility issues
+4. ✅ **Idempotent CREATE TABLE IF NOT EXISTS** - Safe to run repeatedly
 
-1. ❌ **Separate migration script** (`scripts/migrate.js`)
-   - Problem: Healthcheck timeout (migrations took too long)
-   
-2. ❌ **Running migrations in package.json build script**
-   - Problem: Build runs before env vars available
-   
-3. ❌ **Creating Docker files**
-   - Problem: Coolify uses Nixpacks, not Docker
-   
-4. ❌ **Manual database file creation**
-   - Problem: File created but empty (no tables)
-   
-5. ❌ **Setting DATABASE_URL environment variable**
-   - Problem: Better Auth CLI doesn't read env vars for config
+### **Key Changes Made:**
 
-### **Working Solution (Final):**
-
-1. ✅ **Root-level `better-auth.js` config file**
-   - CLI auto-discovers this file
-   - Points to correct database path
-   - Works in both dev and production
-
-2. ✅ **Inline migration at startup with `--yes` flag**
-   - In `app/index.js` BEFORE loading Better Auth:
-   ```javascript
-   execSync('npx @better-auth/cli migrate --yes', { 
-       stdio: 'inherit',
-       cwd: path.join(__dirname, '..')
-   });
-   ```
-
-3. ✅ **Persistent storage properly configured in Coolify**
-   - Source: `/app/data`
-   - Destination: `/app/data`
-   - Is Directory: ✅ Yes
-
-### **Deployment Sequence (Correct Order):**
-
-```bash
-# 1. Coolify starts container
-# 2. Sets NODE_ENV=production
-# 3. Runs: npm start (→ node app/index.js)
-# 4. app/index.js executes migration with --yes flag
-# 5. CLI finds /better-auth.js config
-# 6. Creates tables in /app/data/sqlite.db
-# 7. App loads Better Auth from app/better-auth.js
-# 8. Server starts listening on port 3000
-# 9. All endpoints work! ✅
+#### 1. **New File: `scripts/init-db.js`**
+```javascript
+// Creates tables directly using better-sqlite3
+// Runs synchronously before app starts
+// No separate process, no race condition
 ```
 
-### **Key Files for Deployment:**
+#### 2. **Updated `app/index.js`**
+```javascript
+// OLD (BROKEN):
+execSync('npx @better-auth/cli migrate --yes');
+const { auth } = require('./better-auth');
 
-| File | Purpose | Critical For |
-|------|---------|-------------|
-| `/better-auth.js` | CLI config (auto-discovery) | Migrations finding DB |
-| `app/better-auth.js` | App runtime config | Better Auth instance |
-| `app/index.js` | Server + inline migration | Startup sequence |
-| `/app/data/` | Persistent storage mount | Database survival |
+// NEW (WORKS):
+require('../scripts/init-db');  // Synchronous, same process
+const { auth } = require('./better-auth');
+```
+
+#### 3. **Enhanced `app/better-auth.js`**
+Added production-specific configuration:
+```javascript
+advanced: {
+    useSecureCookies: process.env.NODE_ENV === 'production',
+    defaultCookieAttributes: {
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+    },
+}
+```
+
+### **Why Previous Attempts Failed:**
+
+1. ❌ **`--yes` flag**: Still used separate CLI process
+2. ❌ **Waiting after migration**: Didn't fix cross-connection issue
+3. ❌ **Better Auth auto-migrations**: Not enabled by default
+4. ❌ **Manual SQL via terminal**: Tables created but app couldn't see them
+
+### **Verified Working Solution:**
+
+```bash
+# Local test:
+node app/index.js
+
+# Output:
+🔧 Ensuring database schema exists...
+📋 Creating tables...
+✅ Tables created: account, session, user, verification
+📁 Database path: /Users/paulhenshaw/Desktop/better-auh/sqlite.db
+🚀 Server running on port 3000
+
+# Test signup:
+curl -X POST http://localhost:3000/api/auth/sign-up/email \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"Test1234!","name":"Test"}'
+
+# Result: ✅ SUCCESS - verification email sent!
+```
 
 ### **Environment Variables Required in Coolify:**
 
@@ -380,37 +367,45 @@ GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 ```
 
-### **Verification After Deployment:**
+### **Deployment Checklist:**
 
 ```bash
-# 1. Check migrations ran
-# Look for in logs: "✅ Migrations completed"
+# 1. Push to GitHub
+git add .
+git commit -m "Fixed database initialization - no more 500 errors"
+git push origin main
 
-# 2. Check tables exist
-# In Coolify Terminal:
-cd /app/data
-sqlite3 sqlite.db ".tables"
-# Should see: user, session, account, verification
+# 2. Coolify will auto-deploy
+# 3. Watch logs for:
+🔧 Ensuring database schema exists...
+📋 Creating tables...
+✅ Tables created: account, session, user, verification
+🚀 Server running on port 3000
 
-# 3. Test endpoints
+# 4. Test immediately:
 curl https://auth.supersoul.top/health
+# Should return: {"status":"ok","timestamp":"...","env":"production"}
+
+# 5. Test signup:
 curl -X POST https://auth.supersoul.top/api/auth/sign-up/email \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"Test123!","name":"Test"}'
+  -d '{"email":"test@example.com","password":"Test1234!","name":"Test"}'
+# Should return user object (no 500 error!)
 ```
 
-### **If Still Getting 500 Errors:**
+### **What Changed from Previous Failed Deploys:**
 
-1. Check Coolify logs for actual error message
-2. Verify persistent storage mounted: `ls /app/data/`
-3. Verify database exists: `ls /app/data/sqlite.db`
-4. Check tables: `sqlite3 /app/data/sqlite.db ".tables"`
-5. Verify env vars set: `echo $NODE_ENV` should be "production"
-6. Check migrations log: Should see "migration was completed successfully"
+| Issue | Before | After |
+|-------|--------|-------|
+| **Migration method** | `npx @better-auth/cli migrate --yes` | Direct `scripts/init-db.js` |
+| **Database connection** | Separate CLI process | Same process, synchronous |
+| **Timing** | Race condition possible | Sequential, guaranteed |
+| **Visibility** | Tables might not be visible | Always visible |
+| **Idempotency** | CLI might fail on re-run | `CREATE TABLE IF NOT EXISTS` |
 
 ---
 
-## 📂 Important Files
+## 📋 Updated Deployment Steps
 
 ```
 .env                      # Local config (gitignored)
