@@ -8,7 +8,7 @@
         "npm": ">=9.0.0"
     },
     "scripts": {
-        "start": "node scripts/migrate.js && node app/index.js",
+        "start": "node app/index.js",
         "dev": "nodemon app/index.js",
         "migrate": "npx @better-auth/cli migrate",
         "build": "echo 'Build complete - migrations will run at startup'"

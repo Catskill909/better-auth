@@ -2,6 +2,21 @@
 
 const express = require('express');
 const path = require('path');
+const { execSync } = require('child_process');
+
+// Run migrations BEFORE loading Better Auth
+console.log('🔄 Running database migrations...');
+try {
+    execSync('npx @better-auth/cli migrate', { 
+        stdio: 'inherit',
+        cwd: path.join(__dirname, '..')
+    });
+    console.log('✅ Migrations completed');
+} catch (error) {
+    console.error('⚠️ Migration warning:', error.message);
+    // Continue anyway - migrations might already be applied
+}
+
 const { auth } = require('./better-auth');
 const { toNodeHandler } = require('better-auth/node');
 
