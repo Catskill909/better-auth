@@ -15,6 +15,25 @@
         <div class="auth-card">
             <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
 
+            <!-- Avatar Upload Section -->
+            <div class="avatar-section">
+                <div class="avatar-display">
+                    <img id="avatarImage" src="" alt="User avatar" class="avatar-preview hidden">
+                    <div id="avatarPlaceholder" class="avatar-placeholder">
+                        <i class="fas fa-user fa-3x"></i>
+                    </div>
+                </div>
+                <div class="avatar-controls">
+                    <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/gif,image/webp"
+                        style="display: none;">
+                    <button id="uploadAvatarBtn" class="btn btn-primary"><i class="fas fa-upload"></i> Upload
+                        Avatar</button>
+                    <button id="deleteAvatarBtn" class="btn btn-danger hidden"><i class="fas fa-trash"></i>
+                        Delete</button>
+                </div>
+                <p class="avatar-hint">Max 5MB • JPG, PNG, GIF, or WebP</p>
+            </div>
+
             <div id="userInfo" class="user-info">
                 <p>Loading user information...</p>
             </div>

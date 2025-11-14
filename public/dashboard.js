@@ -5,6 +5,149 @@ if (!token) {
     window.location.href = '/signin.html';
 }
 
+// Avatar upload functionality
+let currentUser = null;
+
+async function loadAvatar() {
+    try {
+        const response = await fetch('/api/user/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            currentUser = data;
+
+            // Display avatar if exists
+            const avatarImage = document.getElementById('avatarImage');
+            const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+            const deleteBtn = document.getElementById('deleteAvatarBtn');
+
+            if (data.avatarUrls?.thumbnail) {
+                avatarImage.src = data.avatarUrls.thumbnail;
+                avatarImage.classList.remove('hidden');
+                avatarPlaceholder.classList.add('hidden');
+                deleteBtn.classList.remove('hidden');
+            } else {
+                avatarImage.classList.add('hidden');
+                avatarPlaceholder.classList.remove('hidden');
+                deleteBtn.classList.add('hidden');
+            }
+        }
+    } catch (error) {
+        console.error('Error loading avatar:', error);
+    }
+}
+
+// Upload avatar button
+document.getElementById('uploadAvatarBtn').addEventListener('click', () => {
+    document.getElementById('avatarInput').click();
+});
+
+// Handle avatar file selection
+document.getElementById('avatarInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+        showError('Please select a valid image file (JPG, PNG, GIF, or WebP)', 'Invalid File');
+        return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        showError('Image must be smaller than 5MB', 'File Too Large');
+        return;
+    }
+
+    // Show loading state
+    const avatarSection = document.querySelector('.avatar-section');
+    avatarSection.classList.add('avatar-uploading');
+
+    try {
+        const formData = new FormData();
+        formData.append('avatar', file);
+
+        const response = await fetch('/api/user/avatar', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Update avatar display
+            const avatarImage = document.getElementById('avatarImage');
+            const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+            const deleteBtn = document.getElementById('deleteAvatarBtn');
+
+            avatarImage.src = data.avatarThumbnail + '?t=' + Date.now(); // Cache bust
+            avatarImage.classList.remove('hidden');
+            avatarPlaceholder.classList.add('hidden');
+            deleteBtn.classList.remove('hidden');
+
+            showSuccess('Avatar uploaded successfully!', 'Success');
+        } else {
+            showError(data.error || 'Failed to upload avatar', 'Upload Failed');
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        showError('Network error. Please try again.', 'Error');
+    } finally {
+        avatarSection.classList.remove('avatar-uploading');
+        e.target.value = ''; // Reset file input
+    }
+});
+
+// Delete avatar button
+document.getElementById('deleteAvatarBtn').addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to delete your avatar?')) {
+        return;
+    }
+
+    const avatarSection = document.querySelector('.avatar-section');
+    avatarSection.classList.add('avatar-uploading');
+
+    try {
+        const response = await fetch('/api/user/avatar', {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Update avatar display
+            const avatarImage = document.getElementById('avatarImage');
+            const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+            const deleteBtn = document.getElementById('deleteAvatarBtn');
+
+            avatarImage.classList.add('hidden');
+            avatarPlaceholder.classList.remove('hidden');
+            deleteBtn.classList.add('hidden');
+
+            showSuccess('Avatar deleted successfully!', 'Success');
+        } else {
+            showError(data.error || 'Failed to delete avatar', 'Delete Failed');
+        }
+    } catch (error) {
+        console.error('Delete error:', error);
+        showError('Network error. Please try again.', 'Error');
+    } finally {
+        avatarSection.classList.remove('avatar-uploading');
+    }
+});
+
 // Fetch user session
 async function loadUserInfo() {
     try {
@@ -117,3 +260,4 @@ document.getElementById('signoutBtn').addEventListener('click', async () => {
 
 // Load user info on page load
 loadUserInfo();
+loadAvatar();

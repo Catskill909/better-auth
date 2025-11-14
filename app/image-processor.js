@@ -16,19 +16,19 @@ async function processAvatar(tempFilePath, userId) {
         const timestamp = Date.now();
         const uniqueId = crypto.randomBytes(8).toString('hex');
         const filename = `${userId}-${timestamp}-${uniqueId}`;
-        
+
         // Directories
         const fullDir = path.join(__dirname, '../storage/avatars/full');
         const thumbDir = path.join(__dirname, '../storage/avatars/thumbnails');
-        
+
         // Ensure directories exist
         fs.mkdirSync(fullDir, { recursive: true });
         fs.mkdirSync(thumbDir, { recursive: true });
-        
+
         // File paths
         const fullPath = path.join(fullDir, `${filename}.webp`);
         const thumbPath = path.join(thumbDir, `${filename}.webp`);
-        
+
         // Process full-size image (500x500, WebP format)
         await sharp(tempFilePath)
             .resize(500, 500, {
@@ -37,7 +37,7 @@ async function processAvatar(tempFilePath, userId) {
             })
             .webp({ quality: 85 })
             .toFile(fullPath);
-        
+
         // Process thumbnail (150x150)
         await sharp(tempFilePath)
             .resize(150, 150, {
@@ -46,9 +46,9 @@ async function processAvatar(tempFilePath, userId) {
             })
             .webp({ quality: 80 })
             .toFile(thumbPath);
-        
+
         console.log(`✅ Avatar processed: ${filename}`);
-        
+
         return {
             fullPath,
             thumbPath,
@@ -77,47 +77,47 @@ async function processMediaImage(tempFilePath, userId, options = {}) {
             createThumbnail = true,
             thumbnailSize = 300
         } = options;
-        
+
         const timestamp = Date.now();
         const uniqueId = crypto.randomBytes(8).toString('hex');
         const filename = `${userId}-${timestamp}-${uniqueId}`;
-        
+
         // Directory
         const mediaDir = path.join(__dirname, '../storage/media');
         fs.mkdirSync(mediaDir, { recursive: true });
-        
+
         // Main image path
         const mainPath = path.join(mediaDir, `${filename}.webp`);
-        
+
         // Get image metadata
         const metadata = await sharp(tempFilePath).metadata();
-        
+
         // Resize if larger than max dimensions
         let processedImage = sharp(tempFilePath);
-        
+
         if (metadata.width > maxWidth || metadata.height > maxHeight) {
             processedImage = processedImage.resize(maxWidth, maxHeight, {
                 fit: 'inside',
                 withoutEnlargement: true
             });
         }
-        
+
         // Convert to WebP and save
         await processedImage
             .webp({ quality })
             .toFile(mainPath);
-        
+
         const result = {
             mainPath,
             filename: `${filename}.webp`,
             originalWidth: metadata.width,
             originalHeight: metadata.height
         };
-        
+
         // Create thumbnail if requested
         if (createThumbnail) {
             const thumbPath = path.join(mediaDir, `${filename}-thumb.webp`);
-            
+
             await sharp(tempFilePath)
                 .resize(thumbnailSize, thumbnailSize, {
                     fit: 'cover',
@@ -125,13 +125,13 @@ async function processMediaImage(tempFilePath, userId, options = {}) {
                 })
                 .webp({ quality: 75 })
                 .toFile(thumbPath);
-            
+
             result.thumbPath = thumbPath;
             result.thumbFilename = `${filename}-thumb.webp`;
         }
-        
+
         console.log(`✅ Media image processed: ${filename}`);
-        
+
         return result;
     } catch (error) {
         console.error('Error processing media image:', error);
@@ -168,19 +168,19 @@ function deleteProcessedImages(filename, type = 'avatar') {
         if (type === 'avatar') {
             const fullPath = path.join(__dirname, '../storage/avatars/full', filename);
             const thumbPath = path.join(__dirname, '../storage/avatars/thumbnails', filename);
-            
+
             if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
             if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
-            
+
             console.log(`🗑️ Deleted avatar: ${filename}`);
         } else if (type === 'media') {
             const mainPath = path.join(__dirname, '../storage/media', filename);
             const thumbFilename = filename.replace('.webp', '-thumb.webp');
             const thumbPath = path.join(__dirname, '../storage/media', thumbFilename);
-            
+
             if (fs.existsSync(mainPath)) fs.unlinkSync(mainPath);
             if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
-            
+
             console.log(`🗑️ Deleted media: ${filename}`);
         }
     } catch (error) {
