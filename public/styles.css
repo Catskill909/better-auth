@@ -557,3 +557,38 @@ a:visited:hover {
         width: 100%;
     }
 }
+
+/* Password Toggle */
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-wrapper input[type="password"],
+.password-wrapper input[type="text"] {
+    padding-right: 50px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.3s ease;
+    font-size: 18px;
+}
+
+.password-toggle:hover {
+    color: var(--accent-primary);
+}
+
+.password-toggle i {
+    pointer-events: none;
+}
