@@ -52,7 +52,8 @@ async function processAvatar(tempFilePath, userId) {
         return {
             fullPath,
             thumbPath,
-            filename: `${filename}.webp`
+            filename: `${filename}.webp`,
+            thumbnailFilename: `${filename}.webp`
         };
     } catch (error) {
         console.error('Error processing avatar:', error);

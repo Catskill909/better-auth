@@ -3,10 +3,11 @@ let currentPage = 1;
 let limit = 10;
 let searchQuery = '';
 let currentFilter = 'all';
+let token = null;
 
 // Check if user is admin on page load
 async function checkAdminAccess() {
-    const token = localStorage.getItem('authToken');
+    token = localStorage.getItem('authToken');
     if (!token) {
         window.location.href = '/signin.html';
         return false;
