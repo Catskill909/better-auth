@@ -143,8 +143,8 @@ app.post('/api/user/avatar', requireAuth, (req, res) => {
             // Record in media table
             const mediaId = crypto.randomBytes(16).toString('hex');
             db.prepare(`
-                INSERT INTO media (id, filename, originalName, mimeType, size, path, thumbnailPath, uploadedBy, category)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO media (id, filename, originalName, mimeType, size, path, thumbnailPath, uploadedBy, uploadedAt, category)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).run(
                 mediaId,
                 result.filename,
@@ -154,6 +154,7 @@ app.post('/api/user/avatar', requireAuth, (req, res) => {
                 result.fullPath,
                 result.thumbPath,
                 req.user.id,
+                Date.now(),
                 'avatar'
             );
 
@@ -303,17 +304,18 @@ app.post('/api/admin/media/upload', requireAuth, requireAdmin, (req, res) => {
                     // Record in media table
                     const mediaId = crypto.randomBytes(16).toString('hex');
                     db.prepare(`
-                        INSERT INTO media (id, filename, originalName, mimeType, size, path, thumbnailPath, uploadedBy, category)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        INSERT INTO media (id, filename, originalName, mimeType, size, path, thumbnailPath, uploadedBy, uploadedAt, category)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     `).run(
                         mediaId,
                         result.filename,
                         file.originalname,
                         'image/webp',
-                        result.size,
+                        file.size,
                         result.path,
                         null,
                         req.user.id,
+                        Date.now(),
                         'media'
                     );
 
