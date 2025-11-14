@@ -7,7 +7,7 @@ const { execSync } = require('child_process');
 // Run migrations BEFORE loading Better Auth
 console.log('🔄 Running database migrations...');
 try {
-    execSync('npx @better-auth/cli migrate --yes', { 
+    execSync('npx @better-auth/cli migrate --yes', {
         stdio: 'inherit',
         cwd: path.join(__dirname, '..')
     });
