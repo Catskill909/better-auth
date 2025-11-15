@@ -52,8 +52,17 @@ if (signinForm) {
             console.log('Sign in response:', { data, error });
 
             if (error) {
+                // If error is unverified, show special message
+                if (error.code === 'email_not_verified' || (error.message && error.message.toLowerCase().includes('verify'))) {
+                    messageDiv.className = 'message error';
+                    messageDiv.textContent = 'Please verify your email before signing in.';
+                } else {
+                    messageDiv.className = 'message error';
+                    messageDiv.textContent = error.message || 'Invalid email or password.';
+                }
+            } else if (data && data.user && data.user.emailVerified === 0) {
                 messageDiv.className = 'message error';
-                messageDiv.textContent = error.message || 'Invalid email or password.';
+                messageDiv.textContent = 'Please verify your email before signing in.';
             } else {
                 messageDiv.className = 'message success';
                 messageDiv.textContent = 'Sign in successful! Redirecting...';

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .verify-container {
+            max-width: 400px;
+            margin: 80px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+            padding: 2.5rem 2rem;
+            text-align: center;
+        }
+
+        .verify-container h2 {
+            margin-bottom: 1rem;
+        }
+
+        .verify-container .icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .verify-container button {
+            margin-top: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="auth-card">
+            <div style="font-size: 2.5rem; margin-bottom: 1rem;">📧</div>
+            <h1 style="margin-bottom: 1.5rem;">Check Your Email</h1>
+            <p style="margin-bottom: 1.5rem;">We've sent a verification link to your email address.<br>
+                Please click the link to activate your account.</p>
+            <p style="margin-bottom: 2rem;">If you don't see the email, check your spam folder.</p>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 0.5rem;">After confirming your email,
+                you can close this tab.</p>
+            <button id="resend-btn" class="btn btn-primary" style="width: 100%;">Resend Email</button>
+            <div id="resend-status" style="margin-top:1rem;color:var(--success);"></div>
+        </div>
+    </div>
+    <script>
+        // Optionally implement resend logic
+        document.getElementById('resend-btn').onclick = async function () {
+            this.disabled = true;
+            document.getElementById('resend-status').textContent = 'Sending...';
+            try {
+                const email = sessionStorage.getItem('pendingEmail');
+                if (!email) throw new Error('No email found.');
+                const res = await fetch('/api/auth/send-verification-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                if (res.ok) {
+                    document.getElementById('resend-status').textContent = 'Verification email sent!';
+                } else {
+                    document.getElementById('resend-status').textContent = 'Failed to resend. Try again later.';
+                }
+            } catch (e) {
+                document.getElementById('resend-status').textContent = 'Error: ' + e.message;
+            }
+            this.disabled = false;
+        };
+    </script>
+</body>
+
+</html>

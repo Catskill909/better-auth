@@ -77,6 +77,51 @@ app.use('/uploads/media', express.static(path.join(__dirname, '..', 'storage', '
 
 // ============================================
 // Custom Admin Endpoints (must be before Better Auth handler)
+// Custom email verification endpoint to ensure session is updated after verification
+app.get('/api/auth/verify-email', async (req, res) => {
+    const token = req.query.token;
+    if (!token) {
+        return res.status(400).json({ message: 'Missing verification token.' });
+    }
+    try {
+        // Find verification record
+        const verification = db.prepare('SELECT * FROM verification WHERE value = ?').get(token);
+        if (!verification) {
+            return res.status(400).json({ message: 'Invalid or expired verification token.' });
+        }
+        // Find user by identifier (email)
+        const user = db.prepare('SELECT * FROM user WHERE email = ?').get(verification.identifier);
+        if (!user) {
+            return res.status(400).json({ message: 'User not found.' });
+        }
+        // Set emailVerified=1 if not already
+        if (!user.emailVerified) {
+            db.prepare('UPDATE user SET emailVerified = 1 WHERE id = ?').run(user.id);
+        }
+        // Remove verification record
+        db.prepare('DELETE FROM verification WHERE id = ?').run(verification.id);
+        // Create a new session for the user (log them in)
+        const session = await auth.api.createSession({
+            userId: user.id,
+            provider: 'email',
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent'] || '',
+        });
+        // Set session cookie
+        res.cookie('better-auth.session_token', session.token, {
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+            path: '/',
+        });
+        // Return success
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Email verification error:', err);
+        res.status(500).json({ message: 'Internal server error.' });
+    }
+});
 // ============================================
 
 // These need to be defined BEFORE the Better Auth catch-all handler

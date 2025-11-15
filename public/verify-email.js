@@ -20,18 +20,22 @@ async function verifyEmail(token) {
 
         const response = await fetch(`/api/auth/verify-email?token=${token}`, {
             method: 'GET',
+            credentials: 'include',
         });
 
         console.log('Response status:', response.status);
 
         if (response.ok) {
+            // Try to log in the user automatically after verification
             messageDiv.className = 'message success';
             messageDiv.innerHTML = `
                 <h2><i class="fas fa-check-circle" style="color: var(--success);"></i> Email Verified!</h2>
                 <p>Your email has been successfully verified.</p>
-                <p>You can now sign in to your account.</p>
+                <p>Redirecting to your dashboard...</p>
             `;
-            actionsDiv.style.display = 'block';
+            setTimeout(() => {
+                window.location.href = '/dashboard.html';
+            }, 1500);
         } else {
             const data = await response.json();
             messageDiv.className = 'message error';

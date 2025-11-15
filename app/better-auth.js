@@ -65,6 +65,7 @@ const auth = betterAuth({
     },
     emailAndPassword: {
         enabled: true,
+        createSessionOnSignUp: false, // Do NOT log in user on signup
         sendResetPassword: async ({ user, url }) => {
             console.log('Sending password reset email to:', user.email);
             console.log('Reset URL from Better Auth:', url);

@@ -34,13 +34,10 @@ if (signupForm) {
                 messageDiv.className = 'message error';
                 messageDiv.textContent = error.message || 'Sign up failed. Please try again.';
             } else {
-                messageDiv.className = 'message success';
-                messageDiv.textContent = 'Account created successfully! Redirecting to dashboard...';
-
-                // Redirect to dashboard after 1.5 seconds
-                setTimeout(() => {
-                    window.location.href = '/dashboard.html';
-                }, 1500);
+                // Store email for resend on verify-instructions page
+                sessionStorage.setItem('pendingEmail', email);
+                // Redirect to verify instructions page
+                window.location.href = '/verify-instructions.html';
             }
         } catch (err) {
             messageDiv.className = 'message error';
