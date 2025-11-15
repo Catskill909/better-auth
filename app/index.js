@@ -128,27 +128,9 @@ app.get('/api/auth/verify-email', async (req, res) => {
 // because they use the /api/auth/* path that Better Auth intercepts
 
 // GET /api/auth/admin/list-sessions - List all active sessions (admin only)
-app.get('/api/auth/admin/list-sessions', async (req, res) => {
+app.get('/api/auth/admin/list-sessions', requireAuth, requireAdmin, async (req, res) => {
     try {
-        // Get session token from cookie
-        const sessionToken = req.cookies['better-auth.session_token'];
-        if (!sessionToken) {
-            return res.status(401).json({ error: 'Not authenticated' });
-        }
-
-        const session = db.prepare('SELECT * FROM session WHERE token = ? AND expiresAt > ?')
-            .get(sessionToken, Date.now());
-
-        if (!session) {
-            return res.status(401).json({ error: 'Invalid or expired session' });
-        }
-
-        const user = db.prepare('SELECT * FROM user WHERE id = ?').get(session.userId);
-
-        if (!user || user.role !== 'admin') {
-            return res.status(403).json({ error: 'Admin access required' });
-        }
-
+        // Only admins reach here, req.user is available
         const sessions = db.prepare(`
             SELECT 
                 session.id,
@@ -184,7 +166,6 @@ app.get('/api/auth/admin/list-sessions', async (req, res) => {
             sessions: formattedSessions,
             total: formattedSessions.length
         });
-
     } catch (error) {
         console.error('List sessions error:', error);
         res.status(500).json({ error: 'Failed to list sessions' });

@@ -9,6 +9,63 @@
 ---
 
 ## 📊 Current Status
+## 🗂️ Planned Features Overview
+
+Below is a quick-access list of all planned and future development sections in this roadmap:
+
+- Phase 1: Security Enhancements
+  - Two-Factor Authentication (2FA)
+  - Rate Limiting
+  - Security Headers
+  - Session Security Enhancements
+  - Password Strength Requirements
+- Phase 2: User Experience Enhancements
+  - User Profile Page
+  - Email Preferences
+  - Activity Log
+  - Social Connections
+  - Account Deletion
+- Phase 3: Admin Panel Enhancements
+  - Analytics Dashboard
+  - Advanced User Search
+  - Audit Log (Admin Actions)
+  - Email Templates Manager
+  - Role Management
+- Phase 4: UI/UX Improvements
+  - Mobile Responsiveness
+  - Loading States & Skeletons
+  - Toast Notifications
+  - Keyboard Shortcuts
+  - Accessibility (a11y)
+- Phase 5: Database & Performance
+  - Database Optimization
+  - Caching Layer
+  - PostgreSQL Migration (Optional)
+- Phase 6: Media & File Management
+  - Cloud Storage Integration
+  - Image Optimization Pipeline
+  - Video Upload Support
+  - File Management Tools
+- Phase 7: Notifications System
+  - In-App Notifications
+  - Push Notifications (Web Push)
+  - Email Digest
+- Phase 8: Internationalization (i18n)
+  - Multi-Language Support
+- Phase 9: Advanced Integrations
+  - Webhook System
+  - API Keys for Developers
+  - OAuth Provider (Be an OAuth Provider)
+- Phase 10: Testing & Quality
+  - Automated Testing
+  - End-to-End Testing
+  - Performance Monitoring
+- Phase 11: Mobile Apps
+  - React Native Mobile App
+- Phase 12: Documentation & DevOps
+  - API Documentation
+  - User Documentation
+  - CI/CD Pipeline
 
 ### ✅ Implemented Features
 - ✅ Email/password authentication
